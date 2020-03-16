@@ -1,0 +1,16 @@
+# A comment - this is ignored.
+# *.aux ignores all .aux files
+
+# Ignore (files stored at) a given path
+.ipynb_checkpoints/
+__pycache__/
+out/
+
+
+# Ignore files with a special ending (or content)
+*start_jupyter*
+*.tmp
+
+
+# NOTE: Files are still stored locally on your computer, but not tracked by git.
+# So files ignored by .gitignore will be not available to other users.
