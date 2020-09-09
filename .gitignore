@@ -12,6 +12,7 @@ out/sources/
 # Ignore files with a special ending (or content)
 *start_jupyter*
 *.tmp
+*.png
 
 
 # NOTE: Files are still stored locally on your computer, but not tracked by git.
