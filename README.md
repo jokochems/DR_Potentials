@@ -40,7 +40,9 @@ clustering
 * "Potenziale_Lastmanagement.xlsx": The raw data
 * "Columns.xlsx": Information on the parameter column names used
 * "potential_evaluation_funcs.py": User-defined functions which are imported
-by the main project file.
+by the notebook for the meta-analysis
+* "potential_clustering_funcs.py": User-defined functions which are imported
+by the notebook for the potential clustering
 
 ## Usage
 * Start the jupyter-notebook "DR_potential_evaluation.ipynb" or 
