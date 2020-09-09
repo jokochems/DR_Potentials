@@ -4,7 +4,6 @@
 # Ignore (files stored at) a given path
 .ipynb_checkpoints/
 __pycache__/
-out/availability/
 out/parameterization/
 out/plots/
 out/sources/
