@@ -25,7 +25,7 @@ import seaborn as sns
 import xlsxwriter
 
 
-def extract_info(dict_origin, cols_info, drop=True, sample_stats=False, 
+def extract_info(dict_origin, cols_info, drop=True, sample_stats=False,
                  add_sources=False, drop_datalack=True,
                  modify_categories=False, agg_rule="sum", weights=None):
     """ 
@@ -96,82 +96,97 @@ def extract_info(dict_origin, cols_info, drop=True, sample_stats=False,
         across all publications
     
     """
-    
+
     # Create a dict containing the info on a given parameter 
     # per publication and year
     dict_info = {}
     process_cols = ["Prozess"]
     # Create a copy of the columns in order not to manipulate the original input
     cols_to_use = cols_info.copy()
-    
+
     # modify_categories changes the original categories and takes the one of "Prozesskategorie 1"
     # except for cases where replacement mode equals to -1
     if modify_categories:
         cols_to_use.extend(["Prozesskategorie 1", "replacement_mode"])
-        
+
         if agg_rule == "weighted_average":
-            # Remove columns "Prozess" and "year_key" from weights because otherwise, these would be duplicated
+            # Remove columns "Prozess" and "year_key" from weights because otherwise,
+            # these would be duplicated
             duplicates = ["Prozess", "year_key"]
-            weights = [el for el in weights if not "Fundstelle" in el and el not in duplicates]
+            weights = [el for el in weights if "Fundstelle" not in el and el not in duplicates]
             cols_to_use.extend(weights)
-    
+
     process_cols.extend(["year_key"])
-    
+
     if not add_sources:
         cols_to_use = [el for el in cols_to_use if not "Fundstelle" in el]
-    
+
     for k, v in dict_origin.items():
         cols = [el for el in cols_to_use if el in v.columns]
         dict_info[k] = v[cols]
-        
+
         # Do the actual modification of categories and aggregate data (if necessary)
         if modify_categories:
-            # Replace values for "Prozess" column with those from "Prozesskategorie 1" column if not the original names shall be kept
-            dict_info[k].loc[dict_info[k]["replacement_mode"] != -1, "Prozess"] = dict_info[k].loc[dict_info[k]["replacement_mode"] != -1, "Prozesskategorie 1"]
+            # Replace values for "Prozess" column with those from "Prozesskategorie 1" column
+            # if not the original names shall be kept
+            dict_info[k].loc[dict_info[k]["replacement_mode"] != -1,
+                             "Prozess"] = dict_info[k].loc[dict_info[k]["replacement_mode"] != -1,
+                                                           "Prozesskategorie 1"]
             dict_info[k].loc[dict_info[k]["replacement_mode"] == -1, "replacement_mode"] = 0
-            
+
             # Create a sub DataFrame with duplicate values for "Prozesskategorie 1"
-            # Keep all entries in the first place in order to later apply aggregation functions on them and drop them from the original DataFrame
-            sub_df = dict_info[k][dict_info[k]["Prozesskategorie 1"].duplicated(keep=False)]
+            # Keep all entries in the first place in order to later apply
+            # aggregation functions on them and drop them from the original DataFrame
+            sub_df = dict_info[k].loc[dict_info[k]["Prozesskategorie 1"].duplicated(keep=False)]
             dict_info[k] = dict_info[k].drop(sub_df.index)
-            
+
             # Define on which columns of the sub DataFrame to perform (no) aggregation
-            # For object columns the 0th value is taken because values are the same (this may not hold for sources information, but is neglected here)
+            # For object columns the 0th value is taken because values are the same
+            # (this may not hold for sources information, but is neglected here)
             # For other columns, sum or weighted average apply as aggregation functions
             # After that, group DataFrames by "Prozess" column and combine them again
-            no_agg_cols = [col for col in cols if dict_info[k][col].dtype == object or "Fundstelle" in col]
-            agg_cols = [col for col in cols if col not in no_agg_cols or col == "Prozess"]
-            
-            sub_df_no_agg = sub_df[[col for col in cols if col in no_agg_cols]].groupby("Prozess").nth(0)
-            
-            # Weigths used holds the weighting cols used for calculating a weigthed average which have to be removed again
+            no_agg_cols = [col for col in cols
+                           if dict_info[k][col].dtype == object or "Fundstelle" in col]
+            agg_cols = [col for col in cols
+                        if col not in no_agg_cols or col == "Prozess"]
+
+            sub_df_no_agg = sub_df.loc[:, [col for col in cols
+                                           if col in no_agg_cols]].groupby("Prozess").nth(0)
+
+            # Weigths used holds the weighting cols used for calculating a weigthed average
+            # which have to be removed again
             weights_used = []
-            
+
             if not agg_rule == "weighted_average":
                 # Standard aggregation rule is calculating the sum
-                sub_df_agg = sub_df[[col for col in cols if col in agg_cols]].groupby("Prozess").sum()
-            
+                sub_df_agg = sub_df.loc[:, [col for col in cols
+                                            if col in agg_cols]].groupby("Prozess").sum()
+
             else:
-                weights_used = [el for el in cols if el in weights and el not in ["Prozess", "year_key"]]
+                weights_used = [el for el in cols
+                                if el in weights and el not in ["Prozess", "year_key"]]
                 # If multiple weight_cols are given, transform into one (using median)
                 sub_df["weights"] = sub_df[weights_used].median(axis=1)
                 sub_df = sub_df.fillna(sub_df.median(axis=0))
-                
+
                 # Introduce a lambda function for calculating a weighted average
                 if not sub_df["weights"].sum() == 0:
                     wm = lambda x: np.average(x, weights=sub_df.loc[x.index, "weights"], axis=0)
-                    sub_df_agg = sub_df[[col for col in cols if col in agg_cols]].groupby("Prozess").aggregate(wm)
+                    sub_df_agg = sub_df.loc[:, [col for col in cols
+                                                if col in agg_cols]].groupby("Prozess").aggregate(wm)
                 else:
-                    sub_df_agg = sub_df[[col for col in cols if col in agg_cols]].groupby("Prozess").mean()
-            
+                    sub_df_agg = sub_df.loc[:, [col for col in cols
+                                                if col in agg_cols]].groupby("Prozess").mean()
+
             sub_df = pd.concat([sub_df_no_agg, sub_df_agg], axis=1).reset_index(drop=False)
-            
-            # Combine the manipulated sub DataFrame with the original one (without the aggregated rows) again
+
+            # Combine the manipulated sub DataFrame with the original one
+            # (without the aggregated rows) again
             dict_info[k] = pd.concat([dict_info[k], sub_df], axis=0, sort=False).drop(
-                    ["Prozesskategorie 1", "replacement_mode"], axis=1).set_index(process_cols)
+                ["Prozesskategorie 1", "replacement_mode"], axis=1).set_index(process_cols)
             # Drop weight columns with information not needed anymore and remove empty columns
             dict_info[k] = dict_info[k].drop(weights_used, axis=1).dropna(how="all", axis=1)
-        
+
         # No modification on categories (take the original ones)
         else:
             # Remove the number of columns by dropping those only containing NaN entries
@@ -179,35 +194,39 @@ def extract_info(dict_origin, cols_info, drop=True, sample_stats=False,
 
         if sample_stats:
             dict_info[k]["info_available"] = \
-            dict_info[k][[el for el in dict_info[k].columns if not "Fundstelle" in el]].notnull().any(axis=1).astype(int)
-        
+                dict_info[k].loc[:, [el for el in dict_info[k].columns
+                                     if "Fundstelle" not in el]].notnull().any(axis=1).astype(int)
+
         if add_sources:
-            source_col = [el for el in dict_info[k].columns if "Fundstelle" in el]
-            dict_info[k][source_col] = k.split("_")[0] + ", S. " + dict_info[k][source_col].astype(str) + "; "
-    
+            source_col = [el for el in dict_info[k].columns
+                          if "Fundstelle" in el]
+            dict_info[k][source_col] = k.split("_")[0] + \
+                                       ", S. " + dict_info[k][source_col].astype(str) + "; "
+
     # Merge all infos on a given parameter together 
     # for a given process and year across all publications
     df_info = pd.DataFrame(columns=process_cols)
-    
+
     for k, v in dict_info.items():
         try:
-            df_info = pd.merge(df_info, v, on=process_cols, suffixes=["", "_"+k], how="outer")
+            df_info = pd.merge(df_info, v, on=process_cols, suffixes=["", "_" + k], how="outer")
         except ValueError as err:
             print(err)
             print(k + " failed!")
-        
+
     # Add info on the number of publications as well as the number of data values
     # drop redundant info not needed anymore
     if sample_stats:
         df_info["publications_number"] = df_info.filter(regex="info_available").sum(axis=1)
         df_info = df_info.drop([col for col in df_info.columns if "info_available" in col], axis=1)
-        
-        df_info["number_entries"] = df_info.count(axis="columns", numeric_only = True) -1
-        
+
+        df_info["number_entries"] = df_info.count(axis="columns", numeric_only=True) - 1
+
         if drop:
-            df_info = df_info[(df_info["publications_number"] != 0) & (df_info["number_entries"] != 0)]  
-        
-        # Drop categories with 3 or less entries
+            df_info = df_info[(df_info["publications_number"] != 0)
+                              & (df_info["number_entries"] != 0)]
+
+            # Drop categories with 3 or less entries
         if drop_datalack:
             df_info = df_info[df_info["number_entries"] >= 3]
 
@@ -215,24 +234,26 @@ def extract_info(dict_origin, cols_info, drop=True, sample_stats=False,
     else:
         if drop:
             cols_to_ignore = process_cols
-            df_info = df_info.dropna(how="all", subset=[el for el in df_info.columns if not el in cols_to_ignore], axis=0)
-        
+            df_info = df_info.dropna(how="all", subset=[el for el in df_info.columns
+                                                        if not el in cols_to_ignore],
+                                     axis=0)
+
         if drop_datalack:
-            df_info = df_info[df_info.count(axis="columns", numeric_only = True) >= 3]
+            df_info = df_info[df_info.count(axis="columns", numeric_only=True) >= 3]
 
     # Concatenate together all sources information and delete source cols not needed anymore
     if add_sources:
         source_cols = [el for el in df_info.columns if "Fundstelle" in el]
         df_info["sources"] = df_info[source_cols].fillna("").sum(axis=1)
         df_info = df_info.drop(source_cols, axis=1)
-    
+
     # Do not include year_key into index, but only use process column(s)
     df_info = df_info.set_index(process_cols[:-1])
-    
+
     return dict_info, df_info
 
 
-def create_info_dict_for_years(df_info, years_dict, negate=False, 
+def create_info_dict_for_years(df_info, years_dict, negate=False,
                                sample_stats=False, add_sources=False):
     """ 
     Function takes the extracted information on a specific demand response 
@@ -269,51 +290,51 @@ def create_info_dict_for_years(df_info, years_dict, negate=False,
         Dictionary resp. dictionaries to store the sources info on the relevant 
         parameter, indexed by years
         
-    """ 
-    
+    """
+
     if not isinstance(df_info, list):
-        
+
         dict_info_years = {}
         dict_sources = {}
         rows_to_drop = ["year_key"]
-        
+
         # Split up sources information and actual data
         if "sources" in df_info.columns:
             rows_to_drop.append("sources")
-        
-        for year in years_dict.keys():           
+
+        for year in years_dict.keys():
             dict_info_years[year] = df_info[df_info["year_key"] == year].T.drop(
-                    rows_to_drop, axis = "rows").astype(float)
+                rows_to_drop, axis="rows").astype(float)
             if "sources" in df_info.columns:
-                dict_sources[year] = df_info[df_info["year_key"] == year]["sources"].unique().sum()           
-            
+                dict_sources[year] = df_info[df_info["year_key"] == year]["sources"].unique().sum()
+
             if negate:
                 rows_to_ignore = []
-                
+
                 if sample_stats:
                     rows_to_ignore.extend(["publications_number", "number_entries"])
-                
+
                 # Workaround: to ignore publications number and number entries 
                 # in negation, simply multiply with -1 twice
                 dict_info_years[year] = dict_info_years[year].mul(-1)
                 dict_info_years[year].loc[rows_to_ignore] = dict_info_years[year].loc[rows_to_ignore].mul(-1)
-                     
+
     else:
         dict_info_years = []
         dict_sources = []
-        
+
         for el in df_info:
-            new_info, new_source = create_info_dict_for_years(el, years_dict, 
-                                                              negate=negate, 
-                                                              sample_stats=sample_stats, 
+            new_info, new_source = create_info_dict_for_years(el, years_dict,
+                                                              negate=negate,
+                                                              sample_stats=sample_stats,
                                                               add_sources=add_sources)
             dict_info_years.append(new_info)
             dict_sources.append(new_source)
-            
+
     return dict_info_years, dict_sources
 
 
-def save_info_stats(dict_info_years, path_folder, filename, sample_stats=False, 
+def save_info_stats(dict_info_years, path_folder, filename, sample_stats=False,
                     add_sources=False):
     """
     Function takes the dictionary containing info on the relevant parameter
@@ -339,22 +360,22 @@ def save_info_stats(dict_info_years, path_folder, filename, sample_stats=False,
         True if information on sources (page areas) is included 
         
     """
-    
-    writer = pd.ExcelWriter(path_folder+filename, engine = "xlsxwriter")
-    
+
+    writer = pd.ExcelWriter(path_folder + filename, engine="xlsxwriter")
+
     rows_to_ignore = []
-    
+
     for k, v in dict_info_years.items():
-        
+
         if sample_stats:
             rows_to_ignore.extend(["number_entries", "publications_number"])
         if add_sources and "sources" in v.columns:
             rows_to_ignore.append("sources")
-        
+
         if not v.empty:
             v_info = v.drop(rows_to_ignore, axis=0)
-            v_info.describe().to_excel(writer, sheet_name = k)
-    
+            v_info.describe().to_excel(writer, sheet_name=k)
+
     writer.save()
 
 
@@ -362,18 +383,18 @@ def save_sources(dict_sources, path_folder, filename):
     """
     Function to write the sources information into excel sheets.
     """
-    writer = xlsxwriter.Workbook(path_folder+filename)
-    
+    writer = xlsxwriter.Workbook(path_folder + filename)
+
     for k, v in dict_sources.items():
-        ws = writer.add_worksheet(k)    
+        ws = writer.add_worksheet(k)
         ws.write(0, 0, v)
-            
+
     writer.close()
-    
+
 
 def create_info_boxplot(dict_info_years, year, title, ylabel, colors, ylim=[0, 3000],
-                        use_colors=False, use_limits=True, sample_stats=False, add_sources=False, 
-                        swarmplot=False, savefig=False, show_title=True, path_folder="./out/", 
+                        use_colors=False, use_limits=True, sample_stats=False, add_sources=False,
+                        swarmplot=False, savefig=False, show_title=True, path_folder="./out/",
                         filename="DR_parameter"):
     """
     Function creates a boxplot for the relevant parameter, indexed by
@@ -429,70 +450,72 @@ def create_info_boxplot(dict_info_years, year, title, ylabel, colors, ylim=[0, 3
     filename: str
         Name of the png file to be stored    
     """
-    
+
     to_plot = dict_info_years[year].copy()
-    
+
     # Terminate execution when DataFrame is entirely empty which
     # might be because data has been dropped because there was too few.
     if to_plot.empty:
         return None
-    
-    fig, ax = plt.subplots(figsize=(15,5))
-    
+
+    fig, ax = plt.subplots(figsize=(15, 5))
+
     if sample_stats:
         # Create a new column name including the number of publications 
         # that contain info (n) as well as the number of values available (m)
-        to_plot.loc["new_col_names",:] = \
+        to_plot.loc["new_col_names", :] = \
             to_plot.columns.values + \
             ", n: " + to_plot.loc["publications_number"].astype(int).astype(str) + \
             ", m: " + to_plot.loc["number_entries"].astype(int).astype(str)
-        
+
         to_plot.columns = to_plot.loc["new_col_names"]
         to_plot = to_plot.drop(["number_entries", "publications_number", "new_col_names"], axis=0)
-    
+
     if add_sources and "sources" in to_plot.columns:
         to_plot = to_plot.drop(["sources"], axis=0)
-    
+
     if not swarmplot:
         _ = to_plot.plot(kind="box", ax=ax)
     else:
         if use_colors:
-            _ = sns.boxplot(data=to_plot, ax=ax, width = 0.5, boxprops=dict(alpha=0.2), 
-                            palette=sns.color_palette([el for el in colors.loc[dict_info_years[year].columns,"Farbe (matplotlib strings)"].values]))
-            _ = sns.swarmplot(data=to_plot, ax=ax, 
-                              palette=sns.color_palette([el for el in colors.loc[dict_info_years[year].columns,"Farbe (matplotlib strings)"].values]))
+            _ = sns.boxplot(data=to_plot, ax=ax, width=0.5, boxprops=dict(alpha=0.2),
+                            palette=sns.color_palette([el for el in colors.loc[
+                                dict_info_years[year].columns, "Farbe (matplotlib strings)"].values]))
+            _ = sns.swarmplot(data=to_plot, ax=ax,
+                              palette=sns.color_palette([el for el in colors.loc[
+                                  dict_info_years[year].columns, "Farbe (matplotlib strings)"].values]))
         else:
-            _ = sns.boxplot(data=to_plot, ax=ax, width = 0.5, boxprops=dict(alpha=0.2))
+            _ = sns.boxplot(data=to_plot, ax=ax, width=0.5, boxprops=dict(alpha=0.2))
             _ = sns.swarmplot(data=to_plot, ax=ax)
-    
+
     if show_title:
         if year == "SQ":
-            _ = plt.title(title+" im Status quo")
-            
+            _ = plt.title(title + " im Status quo")
+
         else:
-            _ = plt.title(title+" im Jahr "+year)
-    
+            _ = plt.title(title + " im Jahr " + year)
+
     if use_limits:
         minimum = to_plot.min().min()
         maximum = to_plot.max().max()
-        
+
         if minimum >= 0:
-            ylim = [minimum - 0.1 * minimum, 
+            ylim = [minimum - 0.1 * minimum,
                     maximum + 0.1 * maximum]
         else:
             ylim = [minimum + 0.1 * minimum,
                     maximum - 0.1 * maximum]
-        
+
     _ = plt.ylim(ylim)
     _ = plt.xlabel("Lastmanagementkategorie")
     _ = plt.ylabel(ylabel)
-    _ = plt.xticks(rotation=90)       
-    
+    _ = plt.xticks(rotation=90)
+
     if savefig:
-        plt.savefig(path_folder+filename+"_boxplot.png", dpi = 150, bbox_inches = "tight")
-    
+        plt.savefig(path_folder + filename + "_boxplot.png", dpi=150, bbox_inches="tight")
+
     plt.show()
-    
+
 
 def get_nlargest(dict_info_years, year="SQ", metric="50%", n=5, sample_stats=False):
     """
@@ -525,19 +548,19 @@ def get_nlargest(dict_info_years, year="SQ", metric="50%", n=5, sample_stats=Fal
     process_list: list
         List containing the processes with the largest potentials
     """
-    
+
     to_describe = dict_info_years[year]
-    
+
     # If sample_stats is True, drop rows holding publications number resp. number of entries
     if sample_stats:
         to_describe = to_describe.iloc[:-2]
-    
+
     process_list = list(to_describe.describe().loc[metric].sort_values(
-            ascending=False).index.values[:n])
-    
+        ascending=False).index.values[:n])
+
     return process_list
-    
-    
+
+
 def extract_stats(dict_info_years, years_dict):
     """
     Function takes parameter info as input and calculates info stats per year
@@ -564,36 +587,37 @@ def extract_stats(dict_info_years, years_dict):
     dict_stats_years = {}
 
     for year in years_dict:
-        
+
         # Skip empty DataFrames since describe method cannot be applied to them
         if not dict_info_years[year].empty:
             # Obtain statistical info for each process using the describe method
-            df = dict_info_years[year].describe().T[["min", "max", "mean", "50%"]].dropna(how = "all")
+            df = dict_info_years[year].describe().T[["min", "max", "mean", "50%"]].dropna(how="all")
             # Melt the DataFrame in order to prepare it for plotting the future development for the respective year (groups)
-            dict_stats_years[year] = pd.melt(df.reset_index(), id_vars="Prozess", var_name="parameter").set_index(["Prozess", "parameter"])
-    
+            dict_stats_years[year] = pd.melt(df.reset_index(), id_vars="Prozess", var_name="parameter").set_index(
+                ["Prozess", "parameter"])
+
     df_stats_year = pd.DataFrame(columns=["Prozess", "parameter"])
 
     for k, v in dict_stats_years.items():
-        df_stats_year = pd.merge(df_stats_year, v, on=["Prozess", "parameter"], suffixes=[ "", "_"+k], how="outer")
-    
+        df_stats_year = pd.merge(df_stats_year, v, on=["Prozess", "parameter"], suffixes=["", "_" + k], how="outer")
+
     df_stats_year = df_stats_year.set_index(["Prozess", "parameter"]).T
-    
+
     # Change the index such that it includes years only
     df_stats_year = df_stats_year.reset_index()
     new_df = df_stats_year["index"].str.split("_", n=1, expand=True)
     new_df.at[0, 1] = "Status quo"
     df_stats_year["year_key"] = new_df[1]
     df_stats_year = df_stats_year.set_index("year_key", drop=True).drop("index", axis=1)
-    
+
     return dict_stats_years, df_stats_year
-   
+
 
 def create_projection_boxplot(df_info, years_dict, process_cols, title, ylabel, colors,
-                              ylim=[0, 3000], negate=False, use_colors=False, use_limits=True, 
-                              sample_stats=False, add_sources=False, 
-                              swarmplot=False, savefig=False, show_title=True, 
-                              path_folder="./out/", 
+                              ylim=[0, 3000], negate=False, use_colors=False, use_limits=True,
+                              sample_stats=False, add_sources=False,
+                              swarmplot=False, savefig=False, show_title=True,
+                              path_folder="./out/",
                               filename="DR_parameter_projection"):
     """
     Function creates a boxplot for the projections on future development of
@@ -658,7 +682,7 @@ def create_projection_boxplot(df_info, years_dict, process_cols, title, ylabel, 
     filename: str
         Name of the png file to be stored    
     """
-    
+
     # Manipulate the DataFrame in order to be able to plot it: select processes of interest
     to_plot = df_info.loc[[el for el in process_cols if el in df_info.index], :]
 
@@ -672,47 +696,48 @@ def create_projection_boxplot(df_info, years_dict, process_cols, title, ylabel, 
     to_plot = to_plot.drop("sort_col", axis=1)
 
     # transform the MultiIndex into a more readable form for the plot
-    to_plot.index=to_plot.index.map(','.join)
+    to_plot.index = to_plot.index.map(','.join)
     to_plot = to_plot.T
-    
+
     if negate:
         rows_to_ignore = []
-                
+
         if sample_stats:
             rows_to_ignore.extend(["publications_number", "number_entries"])
-        
+
         # Workaround: to ignore publications number and number entries 
         # in negation, simply multiply with -1 twice
         to_plot = to_plot.mul(-1)
         to_plot.loc[rows_to_ignore] = to_plot.loc[rows_to_ignore].mul(-1)
 
+    fig, ax = plt.subplots(figsize=(15, 5))
 
-    fig, ax = plt.subplots(figsize=(15,5))
-    
     if sample_stats:
-        to_plot.loc["new_col_names",:] = \
+        to_plot.loc["new_col_names", :] = \
             to_plot.columns.values + \
             ", n: " + to_plot.loc["publications_number"].astype(int).astype(str) + \
             ", m: " + to_plot.loc["number_entries"].astype(int).astype(str)
-        
+
         to_plot.columns = to_plot.loc["new_col_names"]
         to_plot = to_plot.drop(["number_entries", "publications_number", "new_col_names"], axis=0)
         # Alternative: Simply drop the respective rows
-        #to_plot = to_plot.iloc[:-2]
-    
+        # to_plot = to_plot.iloc[:-2]
+
     if add_sources:
         to_plot = to_plot.iloc[:-1]
-    
+
     if not swarmplot:
         _ = to_plot.plot(kind="box", ax=ax)
     else:
         if use_colors:
-            _ = sns.boxplot(data=to_plot, ax=ax, width = 0.5, boxprops=dict(alpha=0.2), 
-                            palette=sns.color_palette([el for el in colors.loc[sorted(process_cols)]["Farbe (matplotlib strings)"].values]))
-            _ = sns.swarmplot(data=to_plot, ax=ax, 
-                              palette=sns.color_palette([el for el in colors.loc[sorted(process_cols)]["Farbe (matplotlib strings)"].values]))
+            _ = sns.boxplot(data=to_plot, ax=ax, width=0.5, boxprops=dict(alpha=0.2),
+                            palette=sns.color_palette(
+                                [el for el in colors.loc[sorted(process_cols)]["Farbe (matplotlib strings)"].values]))
+            _ = sns.swarmplot(data=to_plot, ax=ax,
+                              palette=sns.color_palette(
+                                  [el for el in colors.loc[sorted(process_cols)]["Farbe (matplotlib strings)"].values]))
         else:
-            _ = sns.boxplot(data=to_plot, ax=ax, width = 0.5, boxprops=dict(alpha=0.2))
+            _ = sns.boxplot(data=to_plot, ax=ax, width=0.5, boxprops=dict(alpha=0.2))
             _ = sns.swarmplot(data=to_plot, ax=ax)
 
     if use_limits:
@@ -720,34 +745,35 @@ def create_projection_boxplot(df_info, years_dict, process_cols, title, ylabel, 
         maximum = to_plot.max().max()
 
         if minimum >= 0:
-            ylim = [minimum - 0.1 * minimum, 
+            ylim = [minimum - 0.1 * minimum,
                     maximum + 0.1 * maximum]
         else:
             ylim = [minimum + 0.1 * minimum,
                     maximum - 0.1 * maximum]
-    
+
     if show_title:
         _ = plt.title(title)
-    
+
     _ = plt.ylim(ylim)
     _ = plt.xlabel("Prozess")
     _ = plt.ylabel(ylabel)
-    _ = plt.xticks(rotation=90)       
+    _ = plt.xticks(rotation=90)
 
     if savefig:
-        plt.savefig(path_folder+filename+"_projection_box.png", dpi = 150, bbox_inches = "tight")    
-    
-    plt.show()
-    
+        plt.savefig(path_folder + filename + "_projection_box.png", dpi=150, bbox_inches="tight")
 
-def save_future_sources(df_info, process_cols, path_folder, filename, 
+    plt.show()
+
+
+def save_future_sources(df_info, process_cols, path_folder, filename,
                         add_sources=True):
     """
     Create and save sources information for the future outlook.
     """
     dict_sources = {}
-    
+
     if add_sources:
-        dict_sources["sources"] = df_info.loc[[el for el in process_cols if el in df_info.index], :]["sources"].unique().sum()
-        
+        dict_sources["sources"] = df_info.loc[[el for el in process_cols if el in df_info.index], :][
+            "sources"].unique().sum()
+
     save_sources(dict_sources, path_folder, filename)
