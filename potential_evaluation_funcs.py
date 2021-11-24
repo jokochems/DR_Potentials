@@ -410,6 +410,8 @@ def save_info_stats(dict_info_years, path_folder, filename, sample_stats=False,
 
     rows_to_ignore = []
 
+    quantiles = {"5%": 0.05, "10%": 0.1, "90%": 0.9, "95%": 0.95}
+
     for k, v in dict_info_years.items():
 
         if sample_stats:
@@ -419,7 +421,13 @@ def save_info_stats(dict_info_years, path_folder, filename, sample_stats=False,
 
         if not v.empty:
             v_info = v.drop(rows_to_ignore, axis=0)
-            v_info.describe().to_excel(writer, sheet_name=k)
+            stats_df = v_info.describe()
+            # Add values for quantiles to stats_df
+
+            for key, val in quantiles.items():
+                stats_df.loc[key] = v_info.quantile(val).values
+
+            stats_df.to_excel(writer, sheet_name=k)
 
     writer.save()
 
