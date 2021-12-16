@@ -3,10 +3,12 @@
 
 # Ignore (files stored at) a given path
 .ipynb_checkpoints/
+.idea
 __pycache__/
 out/parameterization/
 out/plots/
 out/sources/
+out/stats/
 
 
 # Ignore files with a special ending (or content)
