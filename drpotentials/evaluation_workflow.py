@@ -14,9 +14,13 @@ import pandas as pd
 
 from drpotentials.evaluation_funcs import (
     extract_info,
-    add_value_counts_and_sources, groupby_process_category,
-    transpose_and_split, extract_sample_stats, extract_sample_sources,
-    create_boxplot, get_nlargest
+    add_value_counts_and_sources,
+    groupby_process_category,
+    transpose_and_split,
+    extract_sample_stats,
+    extract_sample_sources,
+    create_boxplot,
+    get_nlargest,
 )
 
 
@@ -47,7 +51,7 @@ def run_analyses_for_parameter_single_year(
         show_title=True,
         path_folder_plots="./out/plots/",
         file_name_plot="parameter",
-        return_dfs=False
+        return_dfs=False,
 ):
     """Wrapper function that runs an analyses for a certain parameter
 
@@ -130,7 +134,7 @@ def run_analyses_for_parameter_single_year(
             savefig=savefig,
             show_title=show_title,
             path_folder=path_folder_plots,
-            file_name=file_name_plot
+            file_name=file_name_plot,
         )
 
     if return_dfs:
@@ -146,7 +150,7 @@ def extract_data_for_parameter_all_years(
         drop_data_lack=True,
         file_name_stats="stats",
         file_name_sources="sources",
-        filter_sector=None
+        filter_sector=None,
 ):
     """Wrapper function that extracts data for certain parameter and all years
 
@@ -204,6 +208,7 @@ def extract_projection_for_all_years(
         plot_ylabel,
         plot_colors,
         processes,
+        filter_sector=None,
         drop_data_lack=True,
         save_sources=True,
         path_folder_sources="./out/sources/",
@@ -216,7 +221,7 @@ def extract_projection_for_all_years(
         show_title=True,
         path_folder_plots="./out/plots/",
         file_name_plot="parameter_projection",
-        return_data=False
+        return_data=False,
 ):
     """Extract data on certain pamareter(s) and processes for all years
 
@@ -232,7 +237,7 @@ def extract_projection_for_all_years(
     * Creating a nice combined swarm and boxplot for visualization
 
     See functions
-    * exctract_info
+    * extract_info
     * add_value_counts
     * groupby_process_category
     * transpose_and_split
@@ -261,16 +266,15 @@ def extract_projection_for_all_years(
             parameters,
             sector,
             years_dict,
-            year
+            year,
+            filter_sector
         )
         filtered_df = add_value_counts_and_sources(filtered_df, drop_data_lack)
         grouped_df = groupby_process_category(filtered_df)
         numeric_df, counts_df, sources_df = transpose_and_split(grouped_df)
 
         sample_sources = extract_sample_sources(
-            sources_df,
-            save=False,
-            return_sources=True
+            sources_df, save=False, return_sources=True
         )
 
         # Add year information to data
@@ -315,12 +319,13 @@ def extract_projection_for_all_years(
         show_title=show_title,
         include_year=False,
         path_folder=path_folder_plots,
-        file_name=file_name_plot
+        file_name=file_name_plot,
     )
 
     if save_sources:
-        with open(path_folder_sources + file_name_sources, "w",
-                  encoding="UTF8") as opf:
+        with open(
+                path_folder_sources + file_name_sources,
+                "w", encoding="UTF8") as opf:
             opf.write(unique_sources_string)
 
     if return_data:
@@ -335,17 +340,30 @@ def extract_nlargest(
         filter_sector=None,
         drop_data_lack=True,
         metric="50%",
-        n=5
+        n=5,
 ):
     """Get the process categories with the largest potentials
 
     Parameters
     ----------
-    stats_df: pandas.DataFrame
-        Data set containing statistics for the parameter(s)
+    df : pandas.DataFrame
+        Grouped input data
 
     sector: str
-        The sector for which to extract the processes with the largest potentials
+        The sector for which to extract the processes
+        with the largest potentials
+
+    years_dict : dict
+        Dictionary mapping years to a string
+
+    swapped_cols_dict : dict
+        Dictionary mapping columns to a parameter group
+
+    filter_sector : dict
+        Dictionary for sectors
+
+    drop_data_lack : boolean
+        If True, drop processes with less than three data points
 
     metric: str
         Metric which shall be used for detecting the n largest processes
@@ -363,13 +381,15 @@ def extract_nlargest(
         filtered_df = extract_info(
             df,
             swapped_cols_dict,
-            ["Potenzial positiv Mittel",
-             "Potenzial positiv min",
-             "Potenzial positiv max"],
+            [
+                "Potenzial positiv Mittel",
+                "Potenzial positiv min",
+                "Potenzial positiv max",
+            ],
             sector,
             years_dict,
             year,
-            filter_sector
+            filter_sector,
         )
         filtered_df = add_value_counts_and_sources(filtered_df, drop_data_lack)
         grouped_df = groupby_process_category(filtered_df)

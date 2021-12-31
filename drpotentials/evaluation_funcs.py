@@ -17,8 +17,9 @@ import pandas as pd
 import seaborn as sns
 
 
-def extract_info(df, swapped_cols_dict, parameters, sector, years_dict, year,
-                 filter_sector):
+def extract_info(
+    df, swapped_cols_dict, parameters, sector, years_dict, year, filter_sector
+):
     """Extract info for (a) given parameter(s), sector and year from data
 
     Parameters
@@ -50,12 +51,12 @@ def extract_info(df, swapped_cols_dict, parameters, sector, years_dict, year,
     Returns
     -------
     filtered_df : pandas.DataFrame
-        Data set fltered for parameter(s) of interest
+        Data set filtered for parameter(s) of interest
     """
     # Filter for sector, year and parameter and determine cols to use
     if isinstance(parameters, str):
         parameter = parameters
-        parameters = []
+        parameters = list()
         parameters.append(parameter)
     elif not isinstance(parameters, list):
         raise TypeError(
@@ -66,29 +67,28 @@ def extract_info(df, swapped_cols_dict, parameters, sector, years_dict, year,
     filtered_df = df.loc[
         (df["Sektorenzuordnung"] == filter_sector[sector])
         & (df["Jahr"].isin(years_dict[year]))
-        ]
+    ]
 
     cols_to_use = []
     for parameter in parameters:
-        cols_to_use.extend([
-            col for col in filtered_df.columns
-            if col in swapped_cols_dict.keys()
-               and swapped_cols_dict[col] == parameter
-        ])
+        cols_to_use.extend(
+            [
+                col
+                for col in filtered_df.columns
+                if col in swapped_cols_dict.keys()
+                and swapped_cols_dict[col] == parameter
+            ]
+        )
     cols_to_use = list(set(cols_to_use))
-    sources_cols = [
-        col for col in cols_to_use if "Fundstelle" in col
-    ]
+    sources_cols = [col for col in cols_to_use if "Fundstelle" in col]
 
     # Filter for all nan rows and drop them
     filtered_df.set_index("study", append=True, inplace=True)
     nan_idx = filtered_df.loc[
-        filtered_df[
-            [
-                col for col in cols_to_use
-                if col not in sources_cols
-            ]
-        ].isnull().all(1)].index
+        filtered_df[[col for col in cols_to_use if col not in sources_cols]]
+        .isnull()
+        .all(1)
+    ].index
     filtered_df.drop(nan_idx, inplace=True)
     filtered_df.reset_index(level=1, drop=False, inplace=True)
 
@@ -121,14 +121,10 @@ def add_value_counts_and_sources(filtered_df, drop_data_lack=True):
     filtered_df["number_publications"] = filtered_df.index.value_counts()
 
     # Count not null entries for each study and aggregate by process category
-    sources_cols = [
-        col for col in filtered_df.columns if "Fundstelle" in col
-    ]
-    filtered_df["number_entries"] = (
-            filtered_df.count(axis=1)
-            - (len(sources_cols)
-               + len(
-                ["Jahr", "Sektorenzuordnung", "study", "number_publications"]))
+    sources_cols = [col for col in filtered_df.columns if "Fundstelle" in col]
+    filtered_df["number_entries"] = filtered_df.count(axis=1) - (
+        len(sources_cols)
+        + len(["Jahr", "Sektorenzuordnung", "study", "number_publications"])
     )
     entries = filtered_df["number_entries"].groupby(filtered_df.index).sum()
     filtered_df["abs_number_entries"] = entries
@@ -139,8 +135,11 @@ def add_value_counts_and_sources(filtered_df, drop_data_lack=True):
 
     # Join all the sources string information by process category
     for col in sources_cols:
-        entries = filtered_df[col].groupby(filtered_df.index).apply(
-            lambda x: "; ".join(x))
+        entries = (
+            filtered_df[col].groupby(
+                filtered_df.index
+            ).apply(lambda x: "; ".join(x))
+        )
         filtered_df["all_sources_" + col] = entries
 
     return filtered_df
@@ -167,10 +166,11 @@ def groupby_process_category(filtered_df, agg_rule="mean"):
         process categories
     """
     agg_rules = {
-        col: agg_rule for col in filtered_df.columns
-        if not "all_sources" in col
-           and not "Fundstelle" in col
-           and col not in ["Jahr", "Sektorenzuordnung", "study"]
+        col: agg_rule
+        for col in filtered_df.columns
+        if "all_sources" not in col
+        and "Fundstelle" not in col
+        and col not in ["Jahr", "Sektorenzuordnung", "study"]
     }
     for col in filtered_df.columns:
         if "all_sources" in col:
@@ -211,14 +211,13 @@ def transpose_and_split(grouped_df):
     transposed_df = grouped_df.T
 
     all_sources_rows = [
-        row for row in grouped_df.columns
-        if "all_sources" in row
+        row for row in grouped_df.columns if "all_sources" in row
     ]
     count_rows = ["number_publications", "abs_number_entries"]
     numeric_rows = [
-        row for row in grouped_df.columns
-        if row not in all_sources_rows
-           and row not in count_rows
+        row
+        for row in grouped_df.columns
+        if row not in all_sources_rows and row not in count_rows
     ]
 
     numeric_df = transposed_df.loc[numeric_rows]
@@ -230,10 +229,10 @@ def transpose_and_split(grouped_df):
 
 
 def extract_sample_stats(
-        numeric_df,
-        save=False,
-        path_folder="./out/stats/",
-        file_name="stats.csv",
+    numeric_df,
+    save=False,
+    path_folder="./out/stats/",
+    file_name="stats.csv",
 ):
     """Extract the sample stats for the parameter data set
 
@@ -274,11 +273,11 @@ def extract_sample_stats(
 
 
 def extract_sample_sources(
-        all_sources_df,
-        save=False,
-        path_folder="./out/sources/",
-        file_name="sources.csv",
-        return_sources=False
+    all_sources_df,
+    save=False,
+    path_folder="./out/sources/",
+    file_name="sources.csv",
+    return_sources=False,
 ):
     """Extract the sources for the parameter data set
 
@@ -326,21 +325,21 @@ def extract_sample_sources(
 
 
 def create_boxplot(
-        numeric_df,
-        counts_df,
-        title,
-        ylabel,
-        colors=None,
-        year="SQ",
-        ylim=[0, 3000],
-        use_colors=False,
-        use_limits=True,
-        swarmplot=False,
-        savefig=False,
-        show_title=True,
-        include_year=True,
-        path_folder="./out/plots/",
-        file_name="parameter"
+    numeric_df,
+    counts_df,
+    title,
+    ylabel,
+    colors=None,
+    year="SQ",
+    ylim=[0, 3000],
+    use_colors=False,
+    use_limits=True,
+    swarmplot=False,
+    savefig=False,
+    show_title=True,
+    include_year=True,
+    path_folder="./out/plots/",
+    file_name="parameter",
 ):
     """Creates a boxplot for relevant parameter(s) by process categories
 
@@ -402,32 +401,54 @@ def create_boxplot(
 
     fig, ax = plt.subplots(figsize=(15, 5))
 
-    numeric_df_plot = numeric_df.rename(columns={
-        col: col + ", n: " + str(
-            int(counts_df.at["number_publications", col])
-        ) + ", m: " + str(
-            int(counts_df.at["abs_number_entries", col])
-        )
-        for col in counts_df.columns
-    })
+    numeric_df_plot = numeric_df.rename(
+        columns={
+            col: col
+            + ", n: "
+            + str(int(counts_df.at["number_publications", col]))
+            + ", m: "
+            + str(int(counts_df.at["abs_number_entries", col]))
+            for col in counts_df.columns
+        }
+    )
 
     if not swarmplot:
         _ = numeric_df_plot.plot(kind="box", ax=ax)
     else:
         if use_colors:
-            _ = sns.boxplot(data=numeric_df_plot, ax=ax, width=0.5,
-                            boxprops=dict(alpha=0.2),
-                            palette=sns.color_palette([el for el in colors.loc[
-                                numeric_df.columns,
-                                "Farbe (matplotlib strings)"].values]))
-            _ = sns.swarmplot(data=numeric_df_plot, ax=ax,
-                              palette=sns.color_palette(
-                                  [el for el in colors.loc[
-                                      numeric_df.columns,
-                                      "Farbe (matplotlib strings)"].values]))
+            _ = sns.boxplot(
+                data=numeric_df_plot,
+                ax=ax,
+                width=0.5,
+                boxprops=dict(alpha=0.2),
+                palette=sns.color_palette(
+                    [
+                        el
+                        for el in colors.loc[
+                            numeric_df.columns, "Farbe (matplotlib strings)"
+                        ].values
+                    ]
+                ),
+            )
+            _ = sns.swarmplot(
+                data=numeric_df_plot,
+                ax=ax,
+                palette=sns.color_palette(
+                    [
+                        el
+                        for el in colors.loc[
+                            numeric_df.columns, "Farbe (matplotlib strings)"
+                        ].values
+                    ]
+                ),
+            )
         else:
-            _ = sns.boxplot(data=numeric_df_plot, ax=ax, width=0.5,
-                            boxprops=dict(alpha=0.2))
+            _ = sns.boxplot(
+                data=numeric_df_plot,
+                ax=ax,
+                width=0.5,
+                boxprops=dict(alpha=0.2)
+            )
             _ = sns.swarmplot(data=numeric_df_plot, ax=ax)
 
     if show_title:
@@ -445,11 +466,9 @@ def create_boxplot(
         maximum = numeric_df.max().max()
 
         if minimum >= 0:
-            ylim = [minimum - 0.1 * minimum,
-                    maximum + 0.1 * maximum]
+            ylim = [minimum - 0.1 * minimum, maximum + 0.1 * maximum]
         else:
-            ylim = [minimum + 0.1 * minimum,
-                    maximum - 0.1 * maximum]
+            ylim = [minimum + 0.1 * minimum, maximum - 0.1 * maximum]
 
     _ = plt.ylim(ylim)
     _ = plt.xlabel("Lastmanagementkategorie")
@@ -457,8 +476,11 @@ def create_boxplot(
     _ = plt.xticks(rotation=90)
 
     if savefig:
-        plt.savefig(path_folder + file_name + "_boxplot.png", dpi=150,
-                    bbox_inches="tight")
+        plt.savefig(
+            path_folder + file_name + "_boxplot.png",
+            dpi=150,
+            bbox_inches="tight"
+        )
 
     plt.show()
 
@@ -484,7 +506,8 @@ def get_nlargest(stats_df, metric="50%", n=5):
     """
     process_list = []
     if not stats_df.empty:
-        process_list = list(stats_df.loc[metric].sort_values(
-            ascending=False).index.values[:n])
+        process_list = list(
+            stats_df.loc[metric].sort_values(ascending=False).index.values[:n]
+        )
 
     return process_list
