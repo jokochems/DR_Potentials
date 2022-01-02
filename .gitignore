@@ -4,6 +4,7 @@
 # Ignore (files stored at) a given path
 .ipynb_checkpoints/
 .idea
+.vscode
 __pycache__/
 out/parameterization/
 out/plots/
