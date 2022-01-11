@@ -175,52 +175,59 @@ def write_multiple_sheets(sector_dict, path_folder, filename):
 
 
 def map_column_names(availability_time_series, availability_categories):
-    """
-    Function maps column name to the potential information by adapting the columns names.
+    """Map column name to the potential information and adapt column names
 
     Parameters
     ----------
     availability_categories : list of tuples
-        The categories to be used
+        categories to be used
 
     availability_time_series : pd.DataFrame
-        The availability time time series DataFrame
+        availability time series DataFrame
 
     Returns
     -------
-
+    availability_time_series : pd.DataFrame
+        availability time series DataFrame with renamed columns
     """
     availability_time_series = availability_time_series.rename(
         columns=availability_categories
     )
     multi_index = pd.MultiIndex.from_tuples(
         availability_time_series.columns.values
-    ).set_names(["Prozess", "sector"])
+    ).set_names(["Prozesskategorie", "sector"])
     availability_time_series.columns = multi_index
 
     return availability_time_series
 
 
-def determine_missing_cols(potential_T, availability_time_series, sector=None):
+def determine_missing_cols(process_categories, availability_time_series,
+                           sector=None, kind=None):
     """Print info on which columns are missing
 
     Parameters
     ----------
     availability_time_series : pd.DataFrame
-        The availability time series DataFrame
+        availability time series DataFrame
 
-    potential_T : dict
-        transposed version of the potential DataFrame (with the processes as columns)
+    process_categories : pd.MultiIndex
+        all process categories (tuple of category and sector)
 
     sector : str
-        Info on sector
+        sector (one of "ind", "tcs", "hoho")
+
+    kind : str
+        kind of potential ("positive" or "negative")
     """
-    pot_cols = set(potential_T.columns.to_list())
+    pot_cols = set(
+        process_categories[
+            process_categories.get_level_values(1) == sector
+            ])
     ava_cols = set(availability_time_series.columns.to_list())
     diff_cols = list(pot_cols - ava_cols)
 
     # print info on which columns are missing
-    print(f"Missing columns for {sector}:")
+    print(f"Missing columns for {sector} in {kind} direction:")
     print(40 * "-")
     print(diff_cols)
     print()
