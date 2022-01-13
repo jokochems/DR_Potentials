@@ -207,17 +207,17 @@ def determine_missing_cols(process_categories, availability_time_series,
 
     Parameters
     ----------
-    availability_time_series : pd.DataFrame
-        availability time series DataFrame
-
     process_categories : pd.MultiIndex
         all process categories (tuple of category and sector)
+
+    availability_time_series : pd.DataFrame
+        availability time series DataFrame
 
     sector : str
         sector (one of "ind", "tcs", "hoho")
 
     kind : str
-        kind of potential ("positive" or "negative")
+        kind of potential ("pos" for positive or "neg" for negative)
     """
     pot_cols = set(
         process_categories[
@@ -227,77 +227,128 @@ def determine_missing_cols(process_categories, availability_time_series,
     diff_cols = list(pot_cols - ava_cols)
 
     # print info on which columns are missing
-    print(f"Missing columns for {sector} in {kind} direction:")
+    print(f"Missing columns for {sector} in {kind}itive direction:")
     print(40 * "-")
     print(diff_cols)
     print()
 
 
-def assign_availability_remaining(
-    potential_T,
-    availability_time_series,
-    synthetic_cols=[],
-    hours_dict={},
-    days_dict={},
-    months_dict={},
-):
-    """
-    Function assigns availability time series for the remaining categories.
-    Remaining categories are the ones for which potential information is given but no
-    availability time series has been created within the bachelor theses.
-    In the simple case, for these categories a value of 1 is passed for all times.
+def assign_periodical_values(periods, periodical_factors_dict):
+    """Assigns periodical (hourly, weekly or monthly) values
 
     Parameters
     ----------
-    synthetic_cols : list
-        A list of the columns for which no constant availability profiles
-        shall be applied
+    periods : range
+        Range object holding the range of hours, days or months
 
-    availability_time_series : pd.DataFrame
-        The availability time series DataFrame
-
-    potential_T : pd.DataFrame
-        transposed version of the potential DataFrame (with the processes as columns)
-
-    hours_dict: dict
-        A nested dict indexed by columns for which availability shall be determined
-        Inner dict contains a mapping of hours to the respective hourly availability factor
-
-    days_dict: dict
-        A nested dict indexed by columns for which availability shall be determined
-        Inner dict contains a mapping of weekdays to the respective daily availability factor
-
-    months_dict: dict
-        A nested dict indexed by columns for which availability shall be determined
-        Inner dict contains a mapping of months to the respective monthly availability factor
+    periodical_factors_dict : dict
+        Dictionary indexed by process categories containing the assigned
+        hourly, weekly or monthly availability factors
 
     Returns
     -------
-    availability_time_series : pd.DataFrame
-        The availability time series DataFrame including the remaining categories
+    factors_pos : dict
+        Positive availability factors
 
+    factors_neg : dict
+        Negative availability factors
     """
-    pot_cols = set(potential_T.columns.to_list())
-    ava_cols = set(availability_time_series.columns.to_list())
-    diff_cols = list(pot_cols - ava_cols)
+    factors_pos = dict()
+    factors_neg = dict()
+
+    for key, value in periodical_factors_dict.items():
+        factors_pos[key] = dict(zip(periods, value["pos"]))
+        factors_neg[key] = dict(zip(periods, value["neg"]))
+
+    return factors_pos, factors_neg
+
+
+def create_synthetic_profile_factors(periods_factors):
+    """Create synthetic profiles based on hourly, daily and monthly patterns
+
+    Parameters
+    ----------
+    periods_factors : dict
+        Dictionary mapping the periods (hours, days or months to the respective
+        factors)
+
+    Returns
+    -------
+    availability_factors : dict
+        Nested dictionary indexed by sector and direction ("pos" or "neg")
+    """
+    availability_factors = dict()
+
+    for period, factors in periods_factors.items():
+        period_name = factors[0]
+        period_factors = factors[1]
+        pos_factors, neg_factors = assign_periodical_values(period,
+                                                            period_factors)
+        availability_factors[(period_name, "pos")] = pos_factors
+        availability_factors[(period_name, "neg")] = neg_factors
+
+    return availability_factors
+
+
+def assign_availability_remaining(
+    params,
+    availability_time_series,
+    synthetic_cols,
+    factors,
+    sector,
+    kind
+):
+    """Assign availability time series for the remaining categories
+
+    Appends the newly created columns to the parameter DataFrame inplace
+
+    Parameters
+    ----------
+    params : pd.DataFrame
+        Parameter data set
+
+    availability_time_series : pd.DataFrame
+        availability time series DataFrame
+
+    synthetic_cols : list
+        Categories for which synthetic load profiles shall be created
+
+    factors: dict
+        A nested dict containing hourly, weekly and monthly patterns from which
+        the synthetic profiles are build of
+
+    sector: str
+        Sector for which availabilities shall be determined
+
+    kind: str
+        Direction of potentials ("pos" for positive or "neg for negative)
+    """
+    processes = set(params.index[params.index.get_level_values(1) == sector])
+    availabilities = set(availability_time_series.columns.to_list())
+    diff_cols = list(processes - availabilities)
 
     # By default, assign all columns a constant availability
-    # if it is not explicitly
     scalar_dict = {c: 1 for c in diff_cols if c not in synthetic_cols}
     if not len(scalar_dict) == 0:
+        print(scalar_dict)
         availability_time_series[diff_cols] = pd.DataFrame(
             scalar_dict, index=availability_time_series.index
         )
-    for el in synthetic_cols:
-        hours = availability_time_series.index.hour.map(hours_dict[el])
-        days = availability_time_series.index.dayofweek.map(days_dict[el])
-        months = availability_time_series.index.month.map(months_dict[el])
 
-        availability_time_series[el] = pd.Series(
-            hours * days * months, index=availability_time_series.index
+    for col in synthetic_cols:
+        hours = availability_time_series.index.hour.map(
+            factors[("hours", kind)][col]
+        )
+        days = availability_time_series.index.dayofweek.map(
+            factors[("days", kind)][col]
+        )
+        months = availability_time_series.index.month.map(
+            factors[("months", kind)][col]
         )
 
-    return availability_time_series
+        availability_time_series[col] = pd.Series(
+            hours * days * months, index=availability_time_series.index
+        )
 
 
 # Function definitions taken from this stackoverflow issue:
