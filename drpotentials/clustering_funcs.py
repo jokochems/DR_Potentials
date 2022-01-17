@@ -22,51 +22,11 @@ import numpy as np
 import pandas as pd
 
 
-def create_parameter_combinations(parameters_list, cols):
-    """Function creates combinations of measures of central tendency,
-    demand response parameters as well as a given sector.
-
-    Parameters
-    ----------
-    parameters_list: list
-        The parameters for which the combinations shall be determined
-
-    cols: list
-        The measures of central tendency to be used
-
-    sector: str
-        The sector for which the combinations shall be determined
-
-    Returns
-    -------
-    combinations_list: list
-        The list of all possible combinations
-    """
-    combinations_list = []
-
-    # Include all combinations in the list (i.e. measures of central tendencies
-    # and parameters)
-    col, par = np.meshgrid(cols, parameters_list)
-    tuples_list = list(zip(col.flatten(), par.flatten()))
-    for tup in tuples_list:
-        combinations_list.append(tup[0] + "_" + tup[1])
-
-    return combinations_list
-
-
 def group_potential(
-    df,
-    grouping_cols,
-    mean_cols=[],
-    sum_cols=[],
-    min_cols=[],
-    max_cols=[],
-    other_cols=[],
-    sector=None,
-    drop=[],
-    add_cluster=True,
-    weighted_ave=True,
-    weight=[],
+        df,
+        grouping_cols,
+        agg_rules,
+        weight_col=None,
 ):
     """Function does a grouping using the aggregation functions specified.
     It usually is applied after determining clusters within a cluster analysis.
@@ -74,99 +34,48 @@ def group_potential(
     Parameters
     ----------
     df: pd.DataFrame
-        The DataFrame to be grouped
+        DataFrame to be grouped
 
     grouping_cols: list
         The column(s) to use for the grouping
 
-    mean_cols: list
-        Column(s) for which the weigthed average shall be applied
+    agg_rules: dict
+        Dictionary of the aggregation rules to be applied by columns
 
-    sum_cols: list
-        Column(s) for which the sum shall be calculated
-
-    sector: str
-        The sector (one of "ind", "tcs" and "hoho")
-
-    drop: list
-        The column(s) to be dropped in grouping
-
-    add_cluster: boolean
-        If True, add sector and cluster information as index
-
-    weighted_ave: boolean
-        Determines whether to use a weighted average or a simple one
-
-    weight: str
-        Column to use for calculating weigthed averages
+    weight_col : str
+        Column to be used for calculating weighted averages (agg_rule: "mean")
 
     Returns
     -------
     df_grouped: pd.DataFrame
-        The grouped DataFrame
+        Grouped DataFrame
     """
-
     # Ensure that data is available
-    sum_cols = [el for el in sum_cols if el in df.columns]
-    mean_cols = [el for el in mean_cols if el in df.columns]
-    min_cols = [el for el in min_cols if el in df.columns]
-    max_cols = [el for el in max_cols if el in df.columns]
-    other_cols = [el for el in other_cols if el in df.columns]
+    agg_rules = {
+        key: value for key, value in agg_rules.items() if key in df.columns
+    }
+    # Calculate a weighted average value using a lambda function
+    wm = lambda x: np.average(x, weights=df.loc[x.index, weight_col])
 
-    if not len(mean_cols) == 0:
-        if weighted_ave:
-            # Calculate a weighted average value using a lambda function
-            wm = lambda x: np.average(x, weights=df.loc[x.index, weight])
-            df_grouped_mean = (
-                df[mean_cols + grouping_cols].groupby(grouping_cols).aggregate(wm)
-            )
-        else:
-            df_grouped_mean = (
-                df[mean_cols + grouping_cols].groupby(grouping_cols).mean()
-            )
-    else:
-        df_grouped_mean = df[mean_cols + grouping_cols].groupby(grouping_cols).nth(0)
+    cols = [col for col in agg_rules.keys()]
+    cols.extend(grouping_cols)
 
-    #  Sum up the values for the respective columns
-    df_grouped_sum = df[sum_cols + grouping_cols].groupby(grouping_cols).sum()
-
-    # Take minimum resp. maximum values as aggregation values
-    df_grouped_min = df[min_cols + grouping_cols].groupby(grouping_cols).min()
-    df_grouped_max = df[max_cols + grouping_cols].groupby(grouping_cols).max()
-
-    # Use nth(0), i.e. first value for the respective columns with only one entry
-    df_grouped_other = df[other_cols + grouping_cols].groupby(grouping_cols).nth(0)
-
-    # Combine the different subsets again to obtain a single DataFrame
-    # and set index to include cluster number which will be dropped
-    df_grouped = pd.concat(
-        [
-            df_grouped_mean,
-            df_grouped_sum,
-            df_grouped_other,
-            df_grouped_min,
-            df_grouped_max,
-        ],
-        axis=1,
-        join="inner",
+    df_grouped = (
+        df[cols].groupby(grouping_cols).agg(agg_rules)
     ).reset_index()
 
-    if add_cluster:
-        new_index = sector + "_cluster-" + df_grouped["cluster"].apply(str)
-        df_grouped = df_grouped.set_index(new_index).drop(["cluster"], axis=1)
-
-    df_grouped = df_grouped.drop(
-        [col for col in df_grouped.columns for el in drop if el in col], axis=1
+    new_index = (
+            df_grouped["sector"] + "_cluster-"
+            + df_grouped["cluster"].apply(int).apply(str)
     )
+    df_grouped = df_grouped.set_index(new_index).drop(["cluster"], axis=1)
 
     return df_grouped
 
 
-def write_multiple_sheets(sector_dict, path_folder, filename):
-    """
-    Function writes all DataFrames contained in a dict to an Excel file.
-    """
-    writer = pd.ExcelWriter(path_folder + filename, engine="xlsxwriter")
+def write_multiple_sheets(sector_dict, path_folder, file_name):
+    """Writes all DataFrames contained in a dict to an Excel file"""
+    writer = pd.ExcelWriter(path_folder + file_name, engine="xlsxwriter")
 
     for k, v in sector_dict.items():
         v.to_excel(writer, sheet_name=k)
@@ -291,12 +200,12 @@ def create_synthetic_profile_factors(periods_factors):
 
 
 def assign_availability_remaining(
-    params,
-    availability_time_series,
-    synthetic_cols,
-    factors,
-    sector,
-    kind
+        params,
+        availability_time_series,
+        synthetic_cols,
+        factors,
+        sector,
+        kind
 ):
     """Assign availability time series for the remaining categories
 
@@ -376,3 +285,8 @@ def get_top_abs_correlations(df, n=None, threshold=None):
     else:
         raise ValueError("Either specify 'n' XOR 'threshold'")
     return to_return
+
+
+def round_of_rating(number):
+    """Round a number to the closest quarter integer. """
+    return round(number * 4) / 4
