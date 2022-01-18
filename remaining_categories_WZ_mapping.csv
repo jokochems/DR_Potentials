@@ -1,4 +1,4 @@
-﻿Prozess;sector;cluster;WZ
+Prozess;sector;cluster;WZ
 Primäraluminiumelektrolyse;ind;2112;24
 Chlor-Alkali-Elektrolyse;ind;2112;20
 Holz- und Zellstoffherstellung;ind;2112;17
@@ -15,7 +15,6 @@ Belüftung;ind;2112;-1
 Prozesskälte;ind;2112;-1
 Klimakälte;ind;2112;-1
 Prozesskälte;tcs;12;-1
-Belüftung;tcs;12;-1
 Pumpenanwendungen in der Wasserversorgung;tcs;12;36
 Beleuchtung;tcs;12;-1
 Zerkleinerer;tcs;12;-1
@@ -27,9 +26,7 @@ Warmwasserbereitstellung;tcs+hoho;112;-1
 Gefrierschränke und -truhen;hoho;2;0
 Heizungsumwälzpumpen;hoho;2;0
 Klimakälte;tcs+hoho;112;-1
-Abwasserbehandlung;tcs;12;37
 Kühlhäuser;tcs;12;-1
-Beleuchtung;ind;2112;-1
 Druckluftanwendungen;ind;2112;-1
 Pumpenanwendungen;ind;2112;-1
 Kühl- und Gefrierkombinationen;hoho;2;0
