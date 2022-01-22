@@ -111,7 +111,7 @@ def map_column_names(availability_time_series, availability_categories):
 
 
 def determine_missing_cols(process_categories, availability_time_series,
-                           sector=None, kind=None):
+                           sector=None, direction=None):
     """Print info on which columns are missing
 
     Parameters
@@ -125,8 +125,9 @@ def determine_missing_cols(process_categories, availability_time_series,
     sector : str
         sector (one of "ind", "tcs", "hoho")
 
-    kind : str
-        kind of potential ("pos" for positive or "neg" for negative)
+    direction : str
+        direction of control / potential
+        ("pos" for positive or "neg" for negative)
     """
     pot_cols = set(
         process_categories[
@@ -136,8 +137,16 @@ def determine_missing_cols(process_categories, availability_time_series,
     diff_cols = list(pot_cols - ava_cols)
 
     # print info on which columns are missing
-    print(f"Missing columns for {sector} in {kind}itive direction:")
-    print(40 * "-")
+    directions = {
+        "pos": "positive",
+        "neg": "negative"
+    }
+
+    out_string = (
+        f"Missing columns for {sector} in {directions[direction]} direction:"
+    )
+    print(out_string)
+    print(len(out_string) * "-")
     print(diff_cols)
     print()
 
@@ -205,7 +214,7 @@ def assign_availability_remaining(
         synthetic_cols,
         factors,
         sector,
-        kind
+        direction
 ):
     """Assign availability time series for the remaining categories
 
@@ -229,7 +238,7 @@ def assign_availability_remaining(
     sector: str
         Sector for which availabilities shall be determined
 
-    kind: str
+    direction: str
         Direction of potentials ("pos" for positive or "neg for negative)
     """
     processes = set(params.index[params.index.get_level_values(1) == sector])
@@ -246,13 +255,13 @@ def assign_availability_remaining(
 
     for col in synthetic_cols:
         hours = availability_time_series.index.hour.map(
-            factors[("hours", kind)][col]
+            factors[("hours", direction)][col]
         )
         days = availability_time_series.index.dayofweek.map(
-            factors[("days", kind)][col]
+            factors[("days", direction)][col]
         )
         months = availability_time_series.index.month.map(
-            factors[("months", kind)][col]
+            factors[("months", direction)][col]
         )
 
         availability_time_series[col] = pd.Series(
