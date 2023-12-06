@@ -136,9 +136,9 @@ def add_value_counts_and_sources(filtered_df, drop_data_lack=True):
     # Join all the sources string information by process category
     for col in sources_cols:
         entries = (
-            filtered_df[col].groupby(
-                filtered_df.index
-            ).apply(lambda x: "; ".join(x))
+            filtered_df[col]
+            .groupby(filtered_df.index)
+            .apply(lambda x: "; ".join(x))
         )
         filtered_df["all_sources_" + col] = entries
 
@@ -447,7 +447,7 @@ def create_boxplot(
                 data=numeric_df_plot,
                 ax=ax,
                 width=0.5,
-                boxprops=dict(alpha=0.2)
+                boxprops=dict(alpha=0.2),
             )
             _ = sns.swarmplot(data=numeric_df_plot, ax=ax)
 
@@ -479,7 +479,7 @@ def create_boxplot(
         plt.savefig(
             path_folder + file_name + "_boxplot.png",
             dpi=150,
-            bbox_inches="tight"
+            bbox_inches="tight",
         )
 
     plt.show()

@@ -25,33 +25,33 @@ from drpotentials.evaluation_funcs import (
 
 
 def run_analyses_for_parameter_single_year(
-        df,
-        swapped_cols_dict,
-        parameters,
-        sector,
-        years_dict,
-        year,
-        plot_title,
-        plot_ylabel,
-        plot_colors,
-        filter_sector=None,
-        drop_data_lack=True,
-        save_stats=True,
-        path_folder_stats="./out/stats/",
-        file_name_stats="stats.csv",
-        save_sources=True,
-        path_folder_sources="./out/sources/",
-        file_name_sources="sources.txt",
-        show_plot=True,
-        ylim=[0, 3000],
-        use_colors=True,
-        use_limits=True,
-        swarmplot=True,
-        savefig=False,
-        show_title=True,
-        path_folder_plots="./out/plots/",
-        file_name_plot="parameter",
-        return_dfs=False,
+    df,
+    swapped_cols_dict,
+    parameters,
+    sector,
+    years_dict,
+    year,
+    plot_title,
+    plot_ylabel,
+    plot_colors,
+    filter_sector=None,
+    drop_data_lack=True,
+    save_stats=True,
+    path_folder_stats="./out/stats/",
+    file_name_stats="stats.csv",
+    save_sources=True,
+    path_folder_sources="./out/sources/",
+    file_name_sources="sources.txt",
+    show_plot=True,
+    ylim=[0, 3000],
+    use_colors=True,
+    use_limits=True,
+    swarmplot=True,
+    savefig=False,
+    show_title=True,
+    path_folder_plots="./out/plots/",
+    file_name_plot="parameter",
+    return_dfs=False,
 ):
     """Wrapper function that runs an analyses for a certain parameter
 
@@ -99,7 +99,7 @@ def run_analyses_for_parameter_single_year(
         sector,
         years_dict,
         year,
-        filter_sector
+        filter_sector,
     )
     filtered_df = add_value_counts_and_sources(filtered_df, drop_data_lack)
     grouped_df = groupby_process_category(filtered_df)
@@ -142,15 +142,15 @@ def run_analyses_for_parameter_single_year(
 
 
 def extract_data_for_parameter_all_years(
-        df,
-        swapped_cols_dict,
-        parameters,
-        sector,
-        years_dict,
-        drop_data_lack=True,
-        file_name_stats="stats",
-        file_name_sources="sources",
-        filter_sector=None,
+    df,
+    swapped_cols_dict,
+    parameters,
+    sector,
+    years_dict,
+    drop_data_lack=True,
+    file_name_stats="stats",
+    file_name_sources="sources",
+    filter_sector=None,
 ):
     """Wrapper function that extracts data for certain parameter and all years
 
@@ -179,7 +179,7 @@ def extract_data_for_parameter_all_years(
             sector,
             years_dict,
             year,
-            filter_sector
+            filter_sector,
         )
         filtered_df = add_value_counts_and_sources(filtered_df, drop_data_lack)
         grouped_df = groupby_process_category(filtered_df)
@@ -199,29 +199,29 @@ def extract_data_for_parameter_all_years(
 
 
 def extract_projection_for_all_years(
-        df,
-        swapped_cols_dict,
-        parameters,
-        sector,
-        years_dict,
-        plot_title,
-        plot_ylabel,
-        plot_colors,
-        processes,
-        filter_sector=None,
-        drop_data_lack=True,
-        save_sources=True,
-        path_folder_sources="./out/sources/",
-        file_name_sources="sources_projection.txt",
-        ylim=[0, 3000],
-        use_colors=True,
-        use_limits=True,
-        swarmplot=True,
-        savefig=False,
-        show_title=True,
-        path_folder_plots="./out/plots/",
-        file_name_plot="parameter_projection",
-        return_data=False,
+    df,
+    swapped_cols_dict,
+    parameters,
+    sector,
+    years_dict,
+    plot_title,
+    plot_ylabel,
+    plot_colors,
+    processes,
+    filter_sector=None,
+    drop_data_lack=True,
+    save_sources=True,
+    path_folder_sources="./out/sources/",
+    file_name_sources="sources_projection.txt",
+    ylim=[0, 3000],
+    use_colors=True,
+    use_limits=True,
+    swarmplot=True,
+    savefig=False,
+    show_title=True,
+    path_folder_plots="./out/plots/",
+    file_name_plot="parameter_projection",
+    return_data=False,
 ):
     """Extract data on certain pamareter(s) and processes for all years
 
@@ -267,7 +267,7 @@ def extract_projection_for_all_years(
             sector,
             years_dict,
             year,
-            filter_sector
+            filter_sector,
         )
         filtered_df = add_value_counts_and_sources(filtered_df, drop_data_lack)
         grouped_df = groupby_process_category(filtered_df)
@@ -281,14 +281,15 @@ def extract_projection_for_all_years(
         numeric_df.columns = numeric_df.columns + "_" + year
         counts_df.columns = counts_df.columns + "_" + year
 
-        combined_numeric_df = pd.concat([combined_numeric_df, numeric_df],
-                                        axis=1)
+        combined_numeric_df = pd.concat(
+            [combined_numeric_df, numeric_df], axis=1
+        )
         combined_counts_df = pd.concat([combined_counts_df, counts_df], axis=1)
 
         if year != "SQ":
             if sample_sources is not None:
                 combined_sources_string = (
-                        combined_sources_string + "; " + sample_sources
+                    combined_sources_string + "; " + sample_sources
                 )
         else:
             if sample_sources is not None:
@@ -324,8 +325,8 @@ def extract_projection_for_all_years(
 
     if save_sources:
         with open(
-                path_folder_sources + file_name_sources,
-                "w", encoding="UTF8") as opf:
+            path_folder_sources + file_name_sources, "w", encoding="UTF8"
+        ) as opf:
             opf.write(unique_sources_string)
 
     if return_data:
@@ -333,14 +334,14 @@ def extract_projection_for_all_years(
 
 
 def extract_nlargest(
-        df,
-        sector,
-        years_dict,
-        swapped_cols_dict,
-        filter_sector=None,
-        drop_data_lack=True,
-        metric="50%",
-        n=5,
+    df,
+    sector,
+    years_dict,
+    swapped_cols_dict,
+    filter_sector=None,
+    drop_data_lack=True,
+    metric="50%",
+    n=5,
 ):
     """Get the process categories with the largest potentials
 
