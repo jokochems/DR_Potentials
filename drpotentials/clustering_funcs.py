@@ -23,10 +23,10 @@ import pandas as pd
 
 
 def group_potential(
-        df,
-        grouping_cols,
-        agg_rules,
-        weight_col=None,
+    df,
+    grouping_cols,
+    agg_rules,
+    weight_col=None,
 ):
     """Function does a grouping using the aggregation functions specified.
     It usually is applied after determining clusters within a cluster analysis.
@@ -60,13 +60,12 @@ def group_potential(
     cols = [col for col in agg_rules.keys()]
     cols.extend(grouping_cols)
 
-    df_grouped = (
-        df[cols].groupby(grouping_cols).agg(agg_rules)
-    ).reset_index()
+    df_grouped = (df[cols].groupby(grouping_cols).agg(agg_rules)).reset_index()
 
     new_index = (
-            df_grouped["sector"] + "_cluster-"
-            + df_grouped["cluster"].apply(int).apply(str)
+        df_grouped["sector"]
+        + "_cluster-"
+        + df_grouped["cluster"].apply(int).apply(str)
     )
     df_grouped = df_grouped.set_index(new_index).drop(["cluster"], axis=1)
 
@@ -110,8 +109,9 @@ def map_column_names(availability_time_series, availability_categories):
     return availability_time_series
 
 
-def determine_missing_cols(process_categories, availability_time_series,
-                           sector=None, direction=None):
+def determine_missing_cols(
+    process_categories, availability_time_series, sector=None, direction=None
+):
     """Print info on which columns are missing
 
     Parameters
@@ -130,17 +130,13 @@ def determine_missing_cols(process_categories, availability_time_series,
         ("pos" for positive or "neg" for negative)
     """
     pot_cols = set(
-        process_categories[
-            process_categories.get_level_values(1) == sector
-            ])
+        process_categories[process_categories.get_level_values(1) == sector]
+    )
     ava_cols = set(availability_time_series.columns.to_list())
     diff_cols = list(pot_cols - ava_cols)
 
     # print info on which columns are missing
-    directions = {
-        "pos": "positive",
-        "neg": "negative"
-    }
+    directions = {"pos": "positive", "neg": "negative"}
 
     out_string = (
         f"Missing columns for {sector} in {directions[direction]} direction:"
@@ -200,8 +196,9 @@ def create_synthetic_profile_factors(periods_factors):
     for period, factors in periods_factors.items():
         period_name = factors[0]
         period_factors = factors[1]
-        pos_factors, neg_factors = assign_periodical_values(period,
-                                                            period_factors)
+        pos_factors, neg_factors = assign_periodical_values(
+            period, period_factors
+        )
         availability_factors[(period_name, "pos")] = pos_factors
         availability_factors[(period_name, "neg")] = neg_factors
 
@@ -209,12 +206,12 @@ def create_synthetic_profile_factors(periods_factors):
 
 
 def assign_availability_remaining(
-        params,
-        availability_time_series,
-        synthetic_cols,
-        factors,
-        sector,
-        direction
+    params,
+    availability_time_series,
+    synthetic_cols,
+    factors,
+    sector,
+    direction,
 ):
     """Assign availability time series for the remaining categories
 
@@ -297,5 +294,5 @@ def get_top_abs_correlations(df, n=None, threshold=None):
 
 
 def round_of_rating(number):
-    """Round a number to the closest quarter integer. """
+    """Round a number to the closest quarter integer."""
     return round(number * 4) / 4

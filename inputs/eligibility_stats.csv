@@ -1,67 +1,67 @@
 Lastmanagementkategorie,Lastverschiebung,Lastverzicht,Lasterhöhung,Anzahl,Lastverschiebung ungeeignet,Lastverzicht ungeeignet,Lasterhöhung ungeeignet
-Prozesskälte,17,1,0,17,0,16,17
-Nachtspeicherheizungen,16,0,0,16,0,16,16
-Elektrostahlherstellung (Lichtbogenofen),7,13,0,16,9,3,16
-Belüftung,14,3,0,16,2,13,16
-Klimakälte,15,0,0,15,0,15,15
-Warmwasserbereitstellung,15,0,0,15,0,15,15
-Zementherstellung,14,9,0,15,1,6,15
-Chlor-Alkali-Elektrolyse,12,10,0,15,3,5,15
-Primäraluminiumelektrolyse,7,12,0,14,7,2,14
-Holz- und Zellstoffherstellung,11,6,0,13,2,7,13
-Wärmepumpen,9,0,0,9,0,9,9
-Gefrierschränke und -truhen,8,0,0,8,0,8,8
-Kühlschränke,8,0,0,8,0,8,8
-Wäschetrockner,5,0,2,7,2,7,5
-Papierherstellung,3,5,0,7,4,2,7
-Papiermaschinen,5,3,0,7,2,4,7
-Geschirrspüler,5,0,1,6,1,6,5
-Heizungsumwälzpumpen,3,3,0,6,3,3,6
-Waschmaschinen,5,0,1,6,1,6,5
-Kupfer- und Zinkherstellung (Elektrolyse),3,3,0,5,2,2,5
-Industrie gesamt,3,2,0,4,1,2,4
-Druckluftanwendungen,4,0,0,4,0,4,4
-Weiße Ware (ohne Kühlung) gesamt,4,0,0,4,0,4,4
-Altpapierrecycling (Pulper),4,1,0,4,0,3,4
-Kühlhäuser,4,0,0,4,0,4,4
-Luftzerlegung,4,1,0,4,0,3,4
-Abwasserbehandlung,1,1,1,3,2,2,2
-Papierveredelung (Streichmaschinen und Kalander),2,0,0,3,1,3,3
-Pumpenanwendungen in der Wasserversorgung,3,0,0,3,0,3,3
-Beleuchtung,1,2,0,3,2,1,3
-Prozesskälte Handel,3,0,0,3,0,3,3
-Kühlung (Lebensmittelindustrie),2,1,0,2,0,1,2
-Prozesswärme,2,0,0,2,0,2,2
-Pumpenanwendungen,2,0,0,2,0,2,2
-QST gesamt,2,1,0,2,0,1,2
-Zerkleinerer,2,0,0,2,0,2,2
-Kühl- und Gefrierkombinationen,2,0,0,2,0,2,2
-Chlor-Alkali-Elektrolyse und Luftzerlegung,1,2,0,2,1,0,2
-Gießereien (Induktionsofen),2,1,0,2,0,1,2
-Calciumcarbid-Herstellung (Lichtbogenofen),2,1,0,2,0,1,2
-Gartenbau gesamt,2,0,0,2,0,2,2
-Hybrid-Wärmeerzeugungssysteme (Widerstandserhitzer / Wärmepumpe + Erdgas-Brennwertkessel),2,0,0,2,0,2,2
-Haushalte gesamt,2,0,0,2,0,2,2
-Glasindustrie gesamt,1,2,0,2,1,0,2
-Chemieindustrie gesamt,0,1,0,1,1,0,1
-Wäschereien gesamt,1,0,0,1,0,1,1
-Büros und Textilbetriebe gesamt,1,0,0,1,0,1,1
-Landwirtschaft gesamt,1,0,0,1,0,1,1
-Elektrische Öfen,1,0,0,1,0,1,1
-Zementherstellung / Behälterglas,1,1,0,1,0,0,1
-Baugewerbe gesamt,1,0,0,1,0,1,1
-elektrische Direktheizungen,1,0,0,1,0,1,1
-elektrische Raumheizung gesamt,1,0,0,1,0,1,1
-Bäder gesamt,1,0,0,1,0,1,1
-Ernährungsindustrie gesamt,0,1,0,1,1,0,1
-Raumwärme,1,0,0,1,0,1,1
-Elektrodenheizkessel,1,0,0,1,0,1,1
-Kälteanwendungen gesamt,1,0,0,1,0,1,1
-GHD gesamt,1,0,0,1,0,1,1
-Gastgewerbe gesamt,1,0,0,1,0,1,1
-Handel gesamt,1,0,0,1,0,1,1
-"Notstromaggregate, Back-Up-Server und Mobilfunkstationen",1,0,0,1,0,1,1
-Kfz-Industrie gesamt,0,1,0,1,1,0,1
-Metallbearbeitung (Wärmebehandlung),0,1,0,1,1,0,1
-Maschinenbau gesamt,0,1,0,1,1,0,1
-produzierendes Gewerbe gesamt,1,0,0,1,0,1,1
+Prozesskälte,19,1.0,0.0,19,0,18.0,19.0
+Nachtspeicherheizungen,18,0.0,0.0,18,0,18.0,18.0
+Elektrostahlherstellung (Lichtbogenofen),8,14.0,0.0,17,9,3.0,17.0
+Belüftung,15,3.0,0.0,17,2,14.0,17.0
+Zementherstellung,16,9.0,0.0,17,1,8.0,17.0
+Chlor-Alkali-Elektrolyse,13,11.0,1.0,16,3,5.0,15.0
+Warmwasserbereitstellung,16,0.0,0.0,16,0,16.0,16.0
+Klimakälte,15,0.0,0.0,15,0,15.0,15.0
+Holz- und Zellstoffherstellung,12,6.0,0.0,14,2,8.0,14.0
+Primäraluminiumelektrolyse,7,12.0,0.0,14,7,2.0,14.0
+Wärmepumpen,12,0.0,0.0,12,0,12.0,12.0
+Kühlschränke,8,0.0,0.0,8,0,8.0,8.0
+Gefrierschränke und -truhen,8,0.0,0.0,8,0,8.0,8.0
+Papiermaschinen,6,3.0,0.0,8,2,5.0,8.0
+Waschmaschinen,6,0.0,1.0,7,1,7.0,6.0
+Papierherstellung,3,5.0,0.0,7,4,2.0,7.0
+Wäschetrockner,5,0.0,2.0,7,2,7.0,5.0
+Kupfer- und Zinkherstellung (Elektrolyse),3,4.0,0.0,6,3,2.0,6.0
+Luftzerlegung,6,1.0,0.0,6,0,5.0,6.0
+Heizungsumwälzpumpen,3,3.0,0.0,6,3,3.0,6.0
+Geschirrspüler,5,0.0,1.0,6,1,6.0,5.0
+Altpapierrecycling (Pulper),5,1.0,0.0,5,0,4.0,5.0
+Druckluftanwendungen,4,0.0,0.0,4,0,4.0,4.0
+Weiße Ware (ohne Kühlung) gesamt,4,0.0,0.0,4,0,4.0,4.0
+Industrie gesamt,3,2.0,0.0,4,1,2.0,4.0
+Kühlhäuser,4,0.0,0.0,4,0,4.0,4.0
+Abwasserbehandlung,1,1.0,1.0,3,2,2.0,2.0
+Prozesskälte Handel,3,0.0,0.0,3,0,3.0,3.0
+Papierveredelung (Streichmaschinen und Kalander),2,0.0,0.0,3,1,3.0,3.0
+Glasindustrie gesamt,2,2.0,0.0,3,1,1.0,3.0
+Prozesswärme,3,0.0,0.0,3,0,3.0,3.0
+Pumpenanwendungen in der Wasserversorgung,3,0.0,0.0,3,0,3.0,3.0
+QST gesamt,3,1.0,0.0,3,0,2.0,3.0
+Beleuchtung,1,2.0,0.0,3,2,1.0,3.0
+Kühlung (Lebensmittelindustrie),3,1.0,0.0,3,0,2.0,3.0
+Pumpenanwendungen,2,0.0,0.0,2,0,2.0,2.0
+Zerkleinerer,2,0.0,0.0,2,0,2.0,2.0
+Kühl- und Gefrierkombinationen,2,0.0,0.0,2,0,2.0,2.0
+Hybrid-Wärmeerzeugungssysteme (Widerstandserhitzer / Wärmepumpe + Erdgas-Brennwertkessel),2,0.0,0.0,2,0,2.0,2.0
+Haushalte gesamt,2,0.0,0.0,2,0,2.0,2.0
+Gießereien (Induktionsofen),2,1.0,0.0,2,0,1.0,2.0
+Gartenbau gesamt,2,0.0,0.0,2,0,2.0,2.0
+Calciumcarbid-Herstellung (Lichtbogenofen),2,1.0,0.0,2,0,1.0,2.0
+Chlor-Alkali-Elektrolyse und Luftzerlegung,1,2.0,0.0,2,1,0.0,2.0
+Landwirtschaft gesamt,1,0.0,0.0,1,0,1.0,1.0
+Elektrische Öfen,1,0.0,0.0,1,0,1.0,1.0
+elektrische Raumheizung gesamt,1,0.0,0.0,1,0,1.0,1.0
+elektrische Direktheizungen,1,0.0,0.0,1,0,1.0,1.0
+Baugewerbe gesamt,1,0.0,0.0,1,0,1.0,1.0
+Zementherstellung / Behälterglas,1,1.0,0.0,1,0,0.0,1.0
+Bäder gesamt,1,0.0,0.0,1,0,1.0,1.0
+Büros und Textilbetriebe gesamt,1,0.0,0.0,1,0,1.0,1.0
+Wäschereien gesamt,1,0.0,0.0,1,0,1.0,1.0
+Chemieindustrie gesamt,0,1.0,0.0,1,1,0.0,1.0
+Elektrodenheizkessel,1,0.0,0.0,1,0,1.0,1.0
+Raumwärme,1,0.0,0.0,1,0,1.0,1.0
+Maschinenbau gesamt,0,1.0,0.0,1,1,0.0,1.0
+Ernährungsindustrie gesamt,0,1.0,0.0,1,1,0.0,1.0
+GHD gesamt,1,0.0,0.0,1,0,1.0,1.0
+Gastgewerbe gesamt,1,0.0,0.0,1,0,1.0,1.0
+Handel gesamt,1,0.0,0.0,1,0,1.0,1.0
+Kfz-Industrie gesamt,0,1.0,0.0,1,1,0.0,1.0
+"Notstromaggregate, Back-Up-Server und Mobilfunkstationen",1,0.0,0.0,1,0,1.0,1.0
+Kälteanwendungen gesamt,1,0.0,0.0,1,0,1.0,1.0
+Metallbearbeitung (Wärmebehandlung),0,1.0,0.0,1,1,0.0,1.0
+produzierendes Gewerbe gesamt,1,0.0,0.0,1,0,1.0,1.0
