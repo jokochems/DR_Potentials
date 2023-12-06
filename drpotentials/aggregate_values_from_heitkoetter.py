@@ -42,27 +42,33 @@ def calculate_metrics(
     parameters.at[cluster, "max_capacity_in_MW"] = (
         data_set["p_set"].max().item()
     )
+    parameters.at[cluster, "min_capacity_in_MW"] = (
+        data_set["p_set"].min().item()
+    )
     parameters.at[cluster, "power_consumption_in_MWh"] = data_set[
         "p_set"
     ].sum()
-    parameters.at[cluster, "positive_potential_max_in_MW"] = data_set[
+    parameters.at[cluster, "negative_potential_max_in_MW"] = data_set[
         "p_max"
     ].max()
-    parameters.at[cluster, "positive_potential_ave_in_MW"] = data_set[
+    parameters.at[cluster, "negative_potential_ave_in_MW"] = data_set[
         "p_max"
     ].mean()
-    parameters.at[cluster, "positive_potential_min_in_MW"] = data_set[
+    parameters.at[cluster, "negative_potential_min_in_MW"] = data_set[
         "p_max"
     ].min()
-    parameters.at[cluster, "negative_potential_max_in_MW"] = -data_set[
+    parameters.at[cluster, "positive_potential_max_in_MW"] = -data_set[
         "p_min"
     ].min()
-    parameters.at[cluster, "negative_potential_ave_in_MW"] = -data_set[
+    parameters.at[cluster, "positive_potential_ave_in_MW"] = -data_set[
         "p_min"
     ].mean()
-    parameters.at[cluster, "negative_potential_min_in_MW"] = -data_set[
+    parameters.at[cluster, "positive_potential_min_in_MW"] = -data_set[
         "p_min"
     ].max()
+    parameters.at[cluster, "maximum_allowed_capacity_in_MW"] = (
+        data_set["p_set"] + data_set["p_max"]
+    ).max()
 
 
 if __name__ == "__main__":
