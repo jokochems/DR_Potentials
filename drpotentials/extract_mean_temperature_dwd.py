@@ -41,7 +41,9 @@ def walk_data_folder_and_extract_mean(
     daily_means["equivalent_rolling_weighted_mean"] = rolling_weighted_average(
         daily_means["same_day"]
     )
-    average_temperatures["equivalent_rolling_weighted_mean"] = daily_means["equivalent_rolling_weighted_mean"]
+    average_temperatures["equivalent_rolling_weighted_mean"] = daily_means[
+        "equivalent_rolling_weighted_mean"
+    ]
     average_temperatures = average_temperatures.ffill().loc[str(year)]
     average_temperatures.to_csv(
         f"{file_path_in.rsplit('/', 1)[0]}/{file_path_out}/average_temperatures.csv",
@@ -61,13 +63,13 @@ def read_and_filter_weather_datum(
     data.index = data.index.astype(str)
     stations_id = data["STATIONS_ID"].unique()
     create_datetime_index(data)
-    filtered_data = data.loc[
-        f"{year - 1}-12-30 00:00:00":f"{year}-12-31 23:00:00", cols
-    ]
+    start_time = f"{year - 1}-12-29 00:00:00"
+    end_time = f"{year}-12-31 23:00:00"
+    filtered_data = data.loc[start_time:end_time, cols]
     full_filtered_data = pd.DataFrame(
         index=pd.date_range(
-            start=f"{year - 1}-12-29 00:00:00",
-            end=f"{year}-12-31 23:00:00",
+            start=start_time,
+            end=end_time,
             freq="H",
         ),
         data=filtered_data["TT_TU"],
