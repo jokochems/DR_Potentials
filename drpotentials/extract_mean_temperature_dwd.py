@@ -78,51 +78,48 @@ def read_and_filter_weather_datum(
     return stations_id, full_filtered_data
 
 
-def create_datetime_index(filtered_data: pd.DataFrame):
+def create_datetime_index(data: pd.DataFrame):
     """Create a pd.DatetimeIndex to allow for resampling"""
-    filtered_data["new_index"] = pd.to_datetime(
-        filtered_data.index.str[:4]
+    data["new_index"] = pd.to_datetime(
+        data.index.str[:4]
         + "-"
-        + filtered_data.index.str[4:6]
+        + data.index.str[4:6]
         + "-"
-        + filtered_data.index.str[6:8]
+        + data.index.str[6:8]
         + " "
-        + filtered_data.index.str[8:10]
+        + data.index.str[8:10]
         + ":00:00"
     )
-    filtered_data.set_index("new_index", inplace=True)
+    data.set_index("new_index", inplace=True)
 
 
-def replace_error_values(filtered_data: pd.DataFrame, error_value: float):
+def replace_error_values(data: pd.DataFrame, error_value: float):
     """Replace error value or empty value
 
     Use mean nearest neighbours if possible, else with median of given month"""
     false_idx_positions = [
-        filtered_data.index.get_loc(val)
-        for val in filtered_data.loc[
-            filtered_data["TT_TU"] == error_value
-        ].index
+        data.index.get_loc(val)
+        for val in data.loc[data["TT_TU"] == error_value].index
     ]
     false_idx_positions.extend(
         [
-            filtered_data.index.get_loc(val)
-            for val in filtered_data.loc[filtered_data["TT_TU"].isna()].index
+            data.index.get_loc(val)
+            for val in data.loc[data["TT_TU"].isna()].index
         ]
     )
-    monthly_medians = filtered_data.resample("M").median()
+    monthly_medians = data.resample("M").median()
     for idx_pos in false_idx_positions:
         if (
-            1 <= idx_pos <= len(filtered_data.index)
+            1 <= idx_pos <= len(data.index)
             and idx_pos + 1 not in false_idx_positions
             and idx_pos + 1 not in false_idx_positions
         ):
-            filtered_data.iloc[idx_pos] = (
-                filtered_data.iloc[idx_pos - 1]
-                + filtered_data.iloc[idx_pos + 1]
+            data.iloc[idx_pos] = (
+                data.iloc[idx_pos - 1] + data.iloc[idx_pos + 1]
             ) / 2
         else:
-            filtered_data.iloc[idx_pos] = monthly_medians.loc[
-                str(filtered_data.iloc[idx_pos].name)[:7]
+            data.iloc[idx_pos] = monthly_medians.loc[
+                str(data.iloc[idx_pos].name)[:7]
             ]
 
 
