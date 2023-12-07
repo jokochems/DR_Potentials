@@ -111,7 +111,7 @@ def replace_error_values(data: pd.DataFrame, error_value: float):
     for idx_pos in false_idx_positions:
         if (
             1 <= idx_pos <= len(data.index)
-            and idx_pos + 1 not in false_idx_positions
+            and idx_pos - 1 not in false_idx_positions
             and idx_pos + 1 not in false_idx_positions
         ):
             data.iloc[idx_pos] = (
