@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+from drpotentials.tools import make_directory_if_missing
+
 FILE_PATH_IN = "D:/tubCloud2/Promotion/Literatur/Lastmanagement/full_download_dsmlib_region4FLEX/full_download_dsmlib_region4FLEX/results"  # noqa: E501
 FILE_PATH_OUT = "D:/tubCloud2/Promotion/Literatur/Lastmanagement/full_download_dsmlib_region4FLEX/prepared/"
 
@@ -23,16 +25,6 @@ def reaggregate_parameter(root_path: str, year: int):
                 deaggregated.to_csv(f"{FILE_PATH_OUT}/{year}/{file}", sep=";")
             calculate_metrics(cluster, cluster_data_set, parameters)
     parameters.to_csv(f"{FILE_PATH_OUT}/{year}/parameters.csv", sep=";")
-
-
-def make_directory_if_missing(folder: str) -> None:
-    """Add directories if missing (solution created querying ChatGPT)"""
-    try:
-        os.makedirs(folder)
-    except FileExistsError:
-        pass
-    except OSError as e:
-        print(f"Failed to create directory: {e}")
 
 
 def calculate_metrics(
