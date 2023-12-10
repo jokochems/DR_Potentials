@@ -52,6 +52,7 @@ def run_analyses_for_parameter_single_year(
     path_folder_plots="./out/plots/",
     file_name_plot="parameter",
     return_dfs=False,
+    use_category_shortcuts_for_plots=True,
 ):
     """Wrapper function that runs an analyses for a certain parameter
 
@@ -119,6 +120,11 @@ def run_analyses_for_parameter_single_year(
         file_name=file_name_sources,
     )
 
+    if use_category_shortcuts_for_plots:
+        numeric_df, counts_df, plot_colors = rename_using_shortcuts(
+            numeric_df, counts_df, plot_colors
+        )
+
     if show_plot:
         create_boxplot(
             numeric_df,
@@ -139,6 +145,24 @@ def run_analyses_for_parameter_single_year(
 
     if return_dfs:
         return numeric_df, counts_df, sample_df, sample_sources
+
+
+def rename_using_shortcuts(
+    numeric_df: pd.DataFrame,
+    counts_df: pd.DataFrame,
+    plot_colors: pd.DataFrame,
+) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+    """Rename columns in data sets used to create box and swarmplots"""
+    numeric_df = numeric_df.rename(
+        columns=plot_colors["Prozesskategorie short"].to_dict(),
+    )
+    counts_df = counts_df.rename(
+        columns=plot_colors["Prozesskategorie short"].to_dict(),
+    )
+    plot_colors = plot_colors.rename(
+        columns={"Prozesskategorie short": "Prozesskategorie"}
+    ).set_index("Prozesskategorie", drop=True)
+    return numeric_df, counts_df, plot_colors
 
 
 def extract_data_for_parameter_all_years(
@@ -222,6 +246,7 @@ def extract_projection_for_all_years(
     path_folder_plots="./out/plots/",
     file_name_plot="parameter_projection",
     return_data=False,
+    use_category_shortcuts_for_plots=True,
 ):
     """Extract data on certain pamareter(s) and processes for all years
 
@@ -277,9 +302,18 @@ def extract_projection_for_all_years(
             sources_df, save=False, return_sources=True
         )
 
+        if use_category_shortcuts_for_plots:
+            (
+                numeric_df,
+                counts_df,
+                plot_colors_year,
+            ) = rename_using_shortcuts(numeric_df, counts_df, plot_colors)
+        else:
+            plot_colors_year = plot_colors.copy()
+
         # Add year information to data
-        numeric_df.columns = numeric_df.columns + "_" + year
-        counts_df.columns = counts_df.columns + "_" + year
+        numeric_df.columns = numeric_df.columns + " - " + year
+        counts_df.columns = counts_df.columns + " - " + year
 
         combined_numeric_df = pd.concat(
             [combined_numeric_df, numeric_df], axis=1
@@ -298,9 +332,8 @@ def extract_projection_for_all_years(
                 combined_sources_string = ""
 
         # Prepare colors for boxplot
-        plot_colors_year = plot_colors.copy()
-        plot_colors_year.index = plot_colors_year.index + "_" + year
-        color_palette = color_palette.append(plot_colors_year)
+        plot_colors_year.index = plot_colors_year.index + " - " + year
+        color_palette = pd.concat([color_palette, plot_colors_year])
 
     # Remove duplicates from (already tidied up) sources information
     unique_sources_set = set(combined_sources_string.split("; "))

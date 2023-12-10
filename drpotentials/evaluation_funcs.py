@@ -338,6 +338,7 @@ def create_boxplot(
     savefig=False,
     show_title=True,
     include_year=True,
+    include_line_break=False,
     path_folder="./out/plots/",
     file_name="parameter",
 ):
@@ -388,6 +389,9 @@ def create_boxplot(
     include_year : boolean
         Include year in the title if True
 
+    include_line_break : boolean
+        If True, add line break in xaxis label
+
     path_folder : str
         Path where the png file shall be stored
 
@@ -401,10 +405,15 @@ def create_boxplot(
 
     fig, ax = plt.subplots(figsize=(15, 5))
 
+    connection = "; "
+    if include_line_break:
+        connection = "\n"
+
     numeric_df_plot = numeric_df.rename(
         columns={
             col: col
-            + ", n: "
+            + connection
+            + "n: "
             + str(int(counts_df.at["number_publications", col]))
             + ", m: "
             + str(int(counts_df.at["abs_number_entries", col]))
