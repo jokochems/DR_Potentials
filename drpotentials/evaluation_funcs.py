@@ -480,8 +480,8 @@ def create_boxplot(
             ylim = [minimum + 0.1 * minimum, maximum - 0.1 * maximum]
 
     _ = plt.ylim(ylim)
-    _ = plt.xlabel("Lastmanagementkategorie")
-    _ = plt.ylabel(ylabel)
+    _ = plt.xlabel("Lastmanagementkategorie", labelpad=10)
+    _ = plt.ylabel(ylabel, labelpad=10)
     _ = plt.xticks(rotation=90)
 
     if savefig:
@@ -491,7 +491,8 @@ def create_boxplot(
             bbox_inches="tight",
         )
 
-    plt.show()
+    _ = plt.show()
+    plt.close()
 
 
 def get_nlargest(stats_df, metric="50%", n=5):
