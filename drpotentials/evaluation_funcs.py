@@ -15,6 +15,7 @@ import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from matplotlib.ticker import FuncFormatter
 
 
 def extract_info(
@@ -339,6 +340,8 @@ def create_boxplot(
     show_title=True,
     include_year=True,
     include_line_break=False,
+    negate=False,
+    format_yaxis=False,
     path_folder="./out/plots/",
     file_name="parameter",
 ):
@@ -392,6 +395,12 @@ def create_boxplot(
     include_line_break : boolean
         If True, add line break in xaxis label
 
+    negate : boolean
+        If True, multiply values to be plotted by -1
+
+    format_yaxis: boolean
+        If True, format thousands
+
     path_folder : str
         Path where the png file shall be stored
 
@@ -420,6 +429,9 @@ def create_boxplot(
             for col in counts_df.columns
         }
     )
+
+    if negate:
+        numeric_df_plot *= (-1)
 
     if not swarmplot:
         _ = numeric_df_plot.plot(kind="box", ax=ax)
@@ -479,6 +491,10 @@ def create_boxplot(
         else:
             ylim = [minimum + 0.1 * minimum, maximum - 0.1 * maximum]
 
+    if format_yaxis:
+        _ = ax.get_yaxis().set_major_formatter(
+            FuncFormatter(lambda x, p: format(int(x), ","))
+        )
     _ = plt.ylim(ylim)
     _ = plt.xlabel("Lastmanagementkategorie", labelpad=10)
     _ = plt.ylabel(ylabel, labelpad=10)
