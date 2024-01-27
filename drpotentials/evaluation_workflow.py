@@ -53,6 +53,8 @@ def run_analyses_for_parameter_single_year(
     file_name_plot="parameter",
     return_dfs=False,
     use_category_shortcuts_for_plots=True,
+    negate=False,
+    format_yaxis=False,
 ):
     """Wrapper function that runs an analyses for a certain parameter
 
@@ -121,9 +123,7 @@ def run_analyses_for_parameter_single_year(
     )
 
     if use_category_shortcuts_for_plots:
-        numeric_df, counts_df, plot_colors = rename_using_shortcuts(
-            numeric_df, counts_df, plot_colors
-        )
+        numeric_df, counts_df, plot_colors = rename_using_shortcuts(numeric_df, counts_df, plot_colors)
 
     if show_plot:
         create_boxplot(
@@ -139,6 +139,8 @@ def run_analyses_for_parameter_single_year(
             swarmplot=swarmplot,
             savefig=savefig,
             show_title=show_title,
+            negate=negate,
+            format_yaxis=format_yaxis,
             path_folder=path_folder_plots,
             file_name=file_name_plot,
         )
@@ -159,9 +161,9 @@ def rename_using_shortcuts(
     counts_df = counts_df.rename(
         columns=plot_colors["Prozesskategorie short"].to_dict(),
     )
-    plot_colors = plot_colors.rename(
-        columns={"Prozesskategorie short": "Prozesskategorie"}
-    ).set_index("Prozesskategorie", drop=True)
+    plot_colors = plot_colors.rename(columns={"Prozesskategorie short": "Prozesskategorie"}).set_index(
+        "Prozesskategorie", drop=True
+    )
     return numeric_df, counts_df, plot_colors
 
 
@@ -247,6 +249,8 @@ def extract_projection_for_all_years(
     file_name_plot="parameter_projection",
     return_data=False,
     use_category_shortcuts_for_plots=True,
+    negate=False,
+    format_yaxis=False,
 ):
     """Extract data on certain pamareter(s) and processes for all years
 
@@ -298,9 +302,7 @@ def extract_projection_for_all_years(
         grouped_df = groupby_process_category(filtered_df)
         numeric_df, counts_df, sources_df = transpose_and_split(grouped_df)
 
-        sample_sources = extract_sample_sources(
-            sources_df, save=False, return_sources=True
-        )
+        sample_sources = extract_sample_sources(sources_df, save=False, return_sources=True)
 
         if use_category_shortcuts_for_plots:
             (
@@ -315,16 +317,12 @@ def extract_projection_for_all_years(
         numeric_df.columns = numeric_df.columns + " - " + year
         counts_df.columns = counts_df.columns + " - " + year
 
-        combined_numeric_df = pd.concat(
-            [combined_numeric_df, numeric_df], axis=1
-        )
+        combined_numeric_df = pd.concat([combined_numeric_df, numeric_df], axis=1)
         combined_counts_df = pd.concat([combined_counts_df, counts_df], axis=1)
 
         if year != "SQ":
             if sample_sources is not None:
-                combined_sources_string = (
-                    combined_sources_string + "; " + sample_sources
-                )
+                combined_sources_string = combined_sources_string + "; " + sample_sources
         else:
             if sample_sources is not None:
                 combined_sources_string = sample_sources
@@ -352,14 +350,14 @@ def extract_projection_for_all_years(
         savefig=savefig,
         show_title=show_title,
         include_year=False,
+        negate=negate,
+        format_yaxis=format_yaxis,
         path_folder=path_folder_plots,
         file_name=file_name_plot,
     )
 
     if save_sources:
-        with open(
-            path_folder_sources + file_name_sources, "w", encoding="UTF8"
-        ) as opf:
+        with open(path_folder_sources + file_name_sources, "w", encoding="UTF8") as opf:
             opf.write(unique_sources_string)
 
     if return_data:
