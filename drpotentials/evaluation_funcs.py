@@ -325,6 +325,22 @@ def extract_sample_sources(
             return unique_sources_string
 
 
+def format_thousands(x, pos):
+    """Use European number formatting
+
+    Solution obtained from querying ChatGPT v3.5
+    """
+    return '{:,.0f}'.format(x).replace(',', '.')
+
+
+def format_decimals(x, pos):
+    """Use European number formatting
+
+    Solution derived from querying ChatGPT v3.5
+    """
+    return '{:,.2f}'.format(x).replace('.', ',')
+
+
 def create_boxplot(
     numeric_df,
     counts_df,
@@ -342,6 +358,7 @@ def create_boxplot(
     include_line_break=False,
     negate=False,
     format_yaxis=False,
+    format_yaxis_decimals=False,
     path_folder="./out/plots/",
     file_name="parameter",
 ):
@@ -400,6 +417,9 @@ def create_boxplot(
 
     format_yaxis: boolean
         If True, format thousands
+
+    format_yaxis_decimals: boolean
+        If True, format decimals
 
     path_folder : str
         Path where the png file shall be stored
@@ -493,7 +513,11 @@ def create_boxplot(
 
     if format_yaxis:
         _ = ax.get_yaxis().set_major_formatter(
-            FuncFormatter(lambda x, p: format(int(x), ","))
+            FuncFormatter(format_thousands)
+        )
+    if format_yaxis_decimals:
+        _ = ax.get_yaxis().set_major_formatter(
+            FuncFormatter(format_decimals)
         )
     _ = plt.ylim(ylim)
     _ = plt.xlabel("Lastmanagementkategorie", labelpad=10)
