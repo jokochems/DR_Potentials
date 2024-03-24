@@ -23,19 +23,26 @@ processes.
 
 ## Contents and structure
 The repository is structured as follows:
-* main level: The main level contains input data as well as all routines for
+* "main level": The main level contains input data as well as all routines for
 extracting, manipulating, visualizing and storing demand response parameter
 data.
-* out: The folder out is the place where all results are stored. It contains
+* "out": The folder out is the place where all results are stored. It contains
 some subfolders: availability, plots, stats, parameterization as well as sources.
 Availability input data for the clustering is already given as external input.
 The other input data for the clustering is stored as well but can be easily
 created from running the potential evaluation notebook as it is.+
-* inputs: Input files for the analyses. The most important ones are:
+* "inputs": Input files for the analyses. The most important ones are:
     * "Methodenvergleich_Potenzialstudien.xlsx": An in-depth method comparison of the analyses conducted in MS Excel
     * "Potenziale_Lastmanagement.xlsx": The raw data for the potential comparison
     * "Columns.xlsx": Information on the parameter column names used
     * "Zitationen.xlsx": A citation analysis
+* "drpotentials": Python tools used in the analyses, among others
+    * "clustering_funcs.py": User-defined functions which are imported
+      by the notebook for the potential clustering
+    * "evaluation_funcs.py": User-defined functions which are imported
+      by the notebook for the meta-analysis
+    * "evaluation_workflow.py": Python-wrappers bundling functionality 
+      for the meta-analysis of technical demand response potentials
 
 At the main level, the following files exist:
 * "DR_availability_timeseries_generation.ipynb": Data preprocessing routines for the clustering, collecting availability data
@@ -45,10 +52,6 @@ meta-analysis
 * "DR_potential_clustering.ipynb"; The notebook used for the potential 
 clustering and creating input to be passed to `pommesdata`
 * "DR_potential_comparison.ipynb"; A notebook for assessing the results compared to literature
-* "potential_clustering_funcs.py": User-defined functions which are imported
-by the notebook for the potential clustering
-* "potential_evaluation_funcs.py": User-defined functions which are imported
-by the notebook for the meta-analysis
 
 ## Usage
 * Install the dependencies specified, see [pommesdata's requirements](https://github.com/pommes-public/pommesdata/blob/dev/environment.yml)
