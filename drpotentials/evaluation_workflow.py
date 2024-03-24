@@ -55,6 +55,7 @@ def run_analyses_for_parameter_single_year(
     use_category_shortcuts_for_plots=True,
     negate=False,
     format_yaxis=False,
+    format_yaxis_decimals=False,
 ):
     """Wrapper function that runs an analyses for a certain parameter
 
@@ -141,6 +142,7 @@ def run_analyses_for_parameter_single_year(
             show_title=show_title,
             negate=negate,
             format_yaxis=format_yaxis,
+            format_yaxis_decimals=format_yaxis_decimals,
             path_folder=path_folder_plots,
             file_name=file_name_plot,
         )
